@@ -297,6 +297,7 @@
       <a href="javascript:void(0)" onclick="switchPage('track')" data-page="track">Track Order</a>
     </div>
     <div class="nav-right">
+      <button id="langBtn" onclick="toggleLang()" style="background:none;border:1.5px solid rgba(95,20,49,.15);border-radius:100px;padding:.25rem .6rem;font-size:.6rem;font-weight:700;color:var(--m);cursor:pointer;margin-right:.4rem;font-family:'Inter',sans-serif">🇹🇭 TH</button>
       <img src="eis-logo.png" alt="EIS">
       <button class="nt" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
@@ -361,6 +362,7 @@
         <div class="adm-hdr reveal">
           <h2 id="admTabTitle">All Orders</h2>
           <div class="adm-btns">
+            <button class="ab" id="shopToggleBtn" onclick="toggleShop()" style="background:var(--success);color:#fff">🔓 Shop Open</button>
             <button class="ab ab-m" onclick="exportCSV()">Export CSV</button>
             <button class="ab ab-d" onclick="clearAll()">Clear</button>
           </div>
@@ -542,7 +544,14 @@
         }
         // Sync stock
         const{data:stockData}=await sb.from('stock').select('*');
-        if(stockData){const s={};stockData.forEach(r=>s[r.product_id]=r.quantity);localStorage.setItem(STOCK_KEY,JSON.stringify(s))}
+        if(stockData){
+          const s={};
+          stockData.forEach(r=>{
+            if(r.product_id==='_shop_status'){localStorage.setItem('jfs_shop_open',r.quantity>0?'true':'false')}
+            else{s[r.product_id]=r.quantity}
+          });
+          localStorage.setItem(STOCK_KEY,JSON.stringify(s));
+        }
       }catch(e){console.warn('Sync failed:',e)}
     }
 
@@ -607,7 +616,77 @@
     function getMyOrders(){return JSON.parse(localStorage.getItem(MY_KEY)||'[]')}
     function saveMyOrder(id,qn){const m=getMyOrders();m.push({id,queue_num:qn});localStorage.setItem(MY_KEY,JSON.stringify(m))}
 
-    // ═══════ CATEGORIES ═══════
+    // ═══════ LANGUAGE ═══════
+    let lang=localStorage.getItem('jfs_lang')||'en';
+    const T={
+      en:{shop:'Shop',track:'Track Order',basket:'Your Basket',items:'items',total:'Total',checkout:'Checkout',
+        proceedCheckout:'Proceed to Checkout',placeOrder:'Place Order',placingOrder:'Placing order...',
+        name:'Full Name',cls:'Class / Section',room:'Deliver to Room',notes:'Notes (optional)',
+        payMethod:'Payment Method',qr:'PromptPay QR',cash:'Cash on Delivery',payTo:'Pay to: Class Treasurer',
+        scanNote:'Scan with any Thai banking app.',cashNote:'Please have the exact amount ready. Our delivery person will collect payment at your classroom.',
+        payWhenDeliver:'Pay When We Deliver',uploadSlip:'Upload Payment Slip',uploadText:'Click to upload or drag & drop',
+        thankYou:'Thank You!',thankMsg:'Your order has been placed! Our team will verify your payment and start preparing your food. It\'ll be delivered to your classroom soon.',
+        saveOrder:'Save your order number to track it anytime.',backToShop:'Back to Shop',
+        trackTitle:'Track Your Order',trackSub:'Enter your order number below',trackBtn:'Track',
+        yourOrders:'Your Orders',noOrders:'You haven\'t placed any orders yet.',orderNotFound:'Order not found.',
+        received:'Order Received',cooking:'Cooking Your Food',delivering:'On Its Way!',delivered:'Delivered — Enjoy!',
+        rejected:'Order Rejected',deleted:'Order Cancelled',
+        callUs:'Questions? Call us:',soldOut:'Sold Out',left:'left',addedToBasket:'added',
+        emptyBasket:'Basket is empty',addItems:'Add items from the shop',cooldownMsg:'Please wait before placing another order',
+        shopClosed:'Ordering is currently closed. Please check back later.',
+        namePh:'Your name',clsPh:'e.g. 11A',roomPh:'e.g. 301',notesPh:'Allergies, special requests, etc.'},
+      th:{shop:'ร้านค้า',track:'ติดตามออเดอร์',basket:'ตะกร้าของคุณ',items:'รายการ',total:'รวม',checkout:'ชำระเงิน',
+        proceedCheckout:'ดำเนินการชำระเงิน',placeOrder:'สั่งซื้อ',placingOrder:'กำลังสั่ง...',
+        name:'ชื่อ-นามสกุล',cls:'ห้อง / ชั้น',room:'ส่งที่ห้อง',notes:'หมายเหตุ (ถ้ามี)',
+        payMethod:'วิธีชำระเงิน',qr:'พร้อมเพย์ QR',cash:'เก็บเงินปลายทาง',payTo:'ชำระให้: เหรัญญิก',
+        scanNote:'สแกนด้วยแอปธนาคาร',cashNote:'กรุณาเตรียมเงินให้พอดี ผู้ส่งจะเก็บเงินที่ห้องเรียน',
+        payWhenDeliver:'จ่ายตอนรับของ',uploadSlip:'อัปโหลดสลิป',uploadText:'กดเพื่ออัปโหลดหรือลากไฟล์',
+        thankYou:'ขอบคุณ!',thankMsg:'ออเดอร์ถูกส่งแล้ว! ทีมงานจะตรวจสอบและเตรียมอาหารให้คุณ จะส่งถึงห้องเรียนเร็วๆ นี้',
+        saveOrder:'บันทึกหมายเลขออเดอร์เพื่อติดตามได้ตลอด',backToShop:'กลับไปร้านค้า',
+        trackTitle:'ติดตามออเดอร์',trackSub:'กรอกหมายเลขออเดอร์',trackBtn:'ติดตาม',
+        yourOrders:'ออเดอร์ของคุณ',noOrders:'ยังไม่มีออเดอร์',orderNotFound:'ไม่พบออเดอร์',
+        received:'ได้รับออเดอร์แล้ว',cooking:'กำลังทำอาหาร',delivering:'กำลังส่ง!',delivered:'ส่งแล้ว — เอนจอย!',
+        rejected:'ออเดอร์ถูกปฏิเสธ',deleted:'ออเดอร์ถูกยกเลิก',
+        callUs:'สอบถาม โทร:',soldOut:'หมดแล้ว',left:'เหลือ',addedToBasket:'เพิ่มแล้ว',
+        emptyBasket:'ตะกร้าว่าง',addItems:'เพิ่มรายการจากร้านค้า',cooldownMsg:'กรุณารอสักครู่ก่อนสั่งใหม่',
+        shopClosed:'ร้านปิดรับออเดอร์แล้ว กรุณากลับมาใหม่ภายหลัง',
+        namePh:'ชื่อของคุณ',clsPh:'เช่น 11A',roomPh:'เช่น 301',notesPh:'แพ้อาหาร หรือคำขอพิเศษ'}
+    };
+    function t(key){return T[lang]?.[key]||T.en[key]||key}
+    window.toggleLang=function(){
+      lang=lang==='en'?'th':'en';localStorage.setItem('jfs_lang',lang);
+      // Update nav text
+      document.querySelector('[data-page="shop"]').textContent=t('shop');
+      document.querySelector('[data-page="track"]').textContent=t('track');
+      document.getElementById('langBtn').textContent=lang==='en'?'🇹🇭 TH':'🇬🇧 EN';
+      renderGrid();renderDrw();
+      toast(lang==='en'?'Switched to English':'เปลี่ยนเป็นภาษาไทย');
+    };
+
+    // ═══════ ORDER CUTOFF (admin-controlled) ═══════
+    function isShopOpen(){return localStorage.getItem('jfs_shop_open')!=='false'}
+    window.toggleShop=function(){
+      const open=!isShopOpen();
+      localStorage.setItem('jfs_shop_open',open?'true':'false');
+      if(useSB){
+        // Store in Supabase so all devices see it
+        sb.from('stock').upsert({product_id:'_shop_status',quantity:open?1:0}).catch(()=>{});
+      }
+      renderAdm();renderGrid();
+      toast(open?'Shop OPENED — orders accepted':'Shop CLOSED — no new orders');
+    };
+
+    // ═══════ DUPLICATE PREVENTION ═══════
+    const COOLDOWN_MS=120000; // 2 minutes
+    function canOrder(){
+      const last=parseInt(localStorage.getItem('jfs_last_order')||'0',10);
+      const diff=Date.now()-last;
+      return diff>=COOLDOWN_MS;
+    }
+    function getCooldownLeft(){
+      const last=parseInt(localStorage.getItem('jfs_last_order')||'0',10);
+      return Math.max(0,Math.ceil((COOLDOWN_MS-(Date.now()-last))/1000));
+    }
     const cats=['All',...new Set(products.map(p=>p.cat))];
     function renderCats(){document.getElementById('catTabs').innerHTML=cats.map(c=>`<button class="cat-btn${c===activeCat?' active':''}" onclick="filterCat('${c}')">${c}</button>`).join('')}
     window.filterCat=function(c){activeCat=c;renderCats();renderGrid()};
@@ -623,7 +702,7 @@
     }
 
     // ═══════ CART ═══════
-    window.addItem=function(id){const stk=stockMap[id]??0;if((cart[id]||0)>=stk){toast('Not enough stock');return}cart[id]=(cart[id]||0)+1;toast(products.find(x=>x.id===id).name+' added');bump();renderGrid();renderDrw()};
+    window.addItem=function(id){if(!isShopOpen()){toast(t('shopClosed'));return}const stk=stockMap[id]??0;if((cart[id]||0)>=stk){toast('Not enough stock');return}cart[id]=(cart[id]||0)+1;toast(products.find(x=>x.id===id).name+' '+t('addedToBasket'));bump();renderGrid();renderDrw()};
     window.chgQty=function(id,d){const n=(cart[id]||0)+d;const stk=stockMap[id]??0;if(n>stk){toast('Not enough stock');return}if(n<=0)delete cart[id];else cart[id]=n;bump();renderGrid();renderDrw()};
     function cCount(){return Object.values(cart).reduce((s,q)=>s+q,0)}
     function cTotal(){return Object.entries(cart).reduce((s,[id,q])=>{const p=products.find(x=>x.id===id);return s+(p?p.price*q:0)},0)}
@@ -671,7 +750,9 @@
 
     // ═══════ SUBMIT ORDER ═══════
     window.submitOrder=async function(){
-      const btn=document.getElementById('coSubmit');btn.disabled=true;btn.textContent='Placing order...';
+      if(!isShopOpen()){toast(t('shopClosed'));return}
+      if(!canOrder()){toast(t('cooldownMsg')+' ('+getCooldownLeft()+'s)');return}
+      const btn=document.getElementById('coSubmit');btn.disabled=true;btn.textContent=t('placingOrder');
       try{
         const orders=getOrders();
         const qn=orders.length>0?Math.max(...orders.map(o=>o.queue_num||0))+1:1;
@@ -689,6 +770,7 @@
         // Decrement local stock
         order.items.forEach(i=>{stockMap[i.id]=Math.max(0,(stockMap[i.id]||0)-i.qty)});saveStock();
         saveMyOrder(order.id,order.queue_num);
+        localStorage.setItem('jfs_last_order',String(Date.now())); // cooldown
         // Reset form
         cart={};slipData='';['coName','coClass','coRoom','coNotes'].forEach(id=>document.getElementById(id).value='');
         document.getElementById('coSlipPrev').style.display='none';document.getElementById('coSlipIn').value='';
@@ -797,6 +879,13 @@
 
     function renderAdm(){
       const orders=getOrders();
+      // Update shop toggle button
+      const shopBtn=document.getElementById('shopToggleBtn');
+      if(shopBtn){
+        const open=isShopOpen();
+        shopBtn.textContent=open?'🔓 Shop Open':'🔒 Shop Closed';
+        shopBtn.style.background=open?'var(--success)':'var(--danger)';
+      }
       const counts={all:orders.length};orders.forEach(o=>{counts[o.status]=(counts[o.status]||0)+1});
       const rev=orders.filter(o=>['cooking','delivering','completed'].includes(o.status)).reduce((s,o)=>s+o.total,0);
       document.getElementById('sT').textContent=orders.length;
@@ -840,7 +929,7 @@
         if(o.status==='rejected')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'pending')">↩ Undo</button>`;
         if(o.status==='deleted')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'pending')">↩ Restore</button>`;
 
-        return`<div class="of-card ${cc}"><div class="of-top"><div class="of-queue">${qid}</div><div class="of-time"><div class="of-dot ${e.cls==='fresh'?'of-dot-pulse':''}" style="background:${dc}"></div><span class="of-timer ${e.cls}" data-ts="${o.ts}">${e.txt}</span></div></div><div class="of-body"><div class="of-buyer">${name} ${payBadge}</div><div class="of-meta">${cls} · Room ${room} · ${sl}</div><div class="of-items">${(o.items||[]).map(i=>`<div class="of-it"><span>${i.name} ×${i.qty}</span><span>฿${i.price*i.qty}</span></div>`).join('')}</div><div class="of-total"><span>Total</span><span>฿${o.total}</span></div>${rejReason}${delReason}${reportInfo}${notes?`<div style="margin-top:.5rem;padding:.4rem .6rem;background:rgba(95,20,49,.03);border-radius:6px;font-size:.65rem;color:#666">📝 <strong>Notes:</strong> ${notes}</div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc">Notes: —</div>`}${slip&&slip.startsWith('data:')?`<div style="margin-top:.5rem"><div style="font-size:.55rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aaa;margin-bottom:.3rem">Payment Slip</div><img src="${slip}" style="width:100%;max-height:180px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlip(${idx})"></div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc;font-style:italic">${o.payment_method==='cash'?'Cash payment — collect on delivery':'No slip uploaded'}</div>`}</div><div class="of-foot"><span class="sb ${sc}">${sl}</span><div class="of-actions">${act}<button class="oa" style="background:rgba(233,196,74,.1);color:#B8860B" onclick="reportOrd(${idx})">⚠</button><button class="oa" style="background:rgba(155,34,38,.06);color:var(--danger)" onclick="deleteOrd(${idx})">🗑</button></div></div></div>`;
+        return`<div class="of-card ${cc}"><div class="of-top"><div class="of-queue">${qid}</div><div class="of-time"><div class="of-dot ${e.cls==='fresh'?'of-dot-pulse':''}" style="background:${dc}"></div><span class="of-timer ${e.cls}" data-ts="${o.ts}">${e.txt}</span></div></div><div class="of-body"><div class="of-buyer">${name} ${payBadge}</div><div class="of-meta">${cls} · Room ${room} · ${sl}</div><div class="of-items">${(o.items||[]).map(i=>`<div class="of-it"><span>${i.name} ×${i.qty}</span><span>฿${i.price*i.qty}</span></div>`).join('')}</div><div class="of-total"><span>Total</span><span>฿${o.total}</span></div>${rejReason}${delReason}${reportInfo}${notes?`<div style="margin-top:.5rem;padding:.4rem .6rem;background:rgba(95,20,49,.03);border-radius:6px;font-size:.65rem;color:#666">📝 <strong>Notes:</strong> ${notes}</div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc">Notes: —</div>`}${slip&&slip.startsWith('data:')?`<div style="margin-top:.5rem"><div style="font-size:.55rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aaa;margin-bottom:.3rem">Payment Slip</div><img src="${slip}" style="width:100%;max-height:180px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlip(${idx})"></div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc;font-style:italic">${o.payment_method==='cash'?'Cash payment — collect on delivery':'No slip uploaded'}</div>`}</div><div class="of-foot"><span class="sb ${sc}">${sl}</span><div class="of-actions">${act}<button class="oa" style="background:rgba(233,196,74,.1);color:#B8860B" onclick="reportOrd(${idx})">⚠</button><button class="oa" style="background:rgba(33,150,243,.08);color:#1565C0" onclick="copyForRunner(${idx})">📋</button><button class="oa" style="background:rgba(155,34,38,.06);color:var(--danger)" onclick="deleteOrd(${idx})">🗑</button></div></div></div>`;
       }).join('');
     }
 
@@ -888,8 +977,22 @@
       const orders=getOrders();const o=orders[idx];if(!o)return;
       const reason=prompt('Report reason (e.g. wrong amount, fake slip):');
       if(!reason)return;
-      o.reported=true;o.report_reason=reason;saveOrders(orders);renderAdm();
-      toast('Order #'+String(o.queue_num).padStart(3,'0')+' reported: '+reason);
+      o.reported=true;o.report_reason=reason;o.status='rejected';o.reject_reason=reason;
+      saveOrders(orders);renderAdm();
+      toast('Order #'+String(o.queue_num).padStart(3,'0')+' reported & rejected');
+      pushUpdate(o,{status:'rejected',reported:true,report_reason:reason,reject_reason:reason});
+    };
+
+    // Copy order summary for delivery runner
+    window.copyForRunner=function(idx){
+      const orders=getOrders();const o=orders[idx];if(!o)return;
+      const items=(o.items||[]).map(i=>i.qty+'x '+i.name).join(', ');
+      const pay=o.payment_method==='cash'?'CASH':'QR PAID';
+      const txt='Room '+o.buyer?.room+': '+items+' — ฿'+o.total+' '+pay+' ('+o.buyer?.name+')';
+      navigator.clipboard.writeText(txt).then(()=>toast('Copied!')).catch(()=>{
+        // Fallback for mobile
+        const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied!');
+      });
     };
 
     window.showSlip=function(idx){
