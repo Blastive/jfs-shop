@@ -8,6 +8,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
   <style>
     :root{--m:#5F1431;--cream:#F0EBE3;--cl:#F7F4EF;--ch:#1a1a1a;--success:#2D6A4F;--danger:#9B2226;--warn-bg:rgba(233,196,74,.12);--warn-tx:#B8860B}
     *{margin:0;padding:0;box-sizing:border-box}
@@ -32,6 +33,32 @@
     .nt span{display:block;width:18px;height:1.5px;background:var(--ch)}
     @media(max-width:768px){.ni{grid-template-columns:auto 1fr auto}.nav-mid{display:none;position:absolute;top:100%;left:0;right:0;background:var(--cream);flex-direction:column;border-bottom:1px solid rgba(0,0,0,.08);padding:.5rem 0;grid-column:1/-1}.nav-mid.open{display:flex}.nav-mid a{padding:.7rem 1.5rem}.nt{display:flex}.nav-right img{height:30px}}
 
+    .lang-seg{display:inline-flex;border:1.5px solid rgba(95,20,49,.18);border-radius:100px;overflow:hidden;margin-right:.5rem}
+    .lang-seg button{background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:700;font-size:.6rem;letter-spacing:.04em;color:var(--m);padding:.28rem .62rem;transition:background .2s,color .2s;line-height:1}
+    .lang-seg button.on{background:var(--m);color:#fff}
+    .runner-feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+    .rn-card{display:flex;gap:.8rem;align-items:stretch;background:#fff;border-radius:12px;padding:.8rem;border:1px solid rgba(95,20,49,.06)}
+    .rn-card.rn-wait{opacity:.55}
+    .rn-room{flex-shrink:0;width:74px;background:var(--m);color:#fff;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem}
+    .rn-room span{font-size:.5rem;letter-spacing:.16em;opacity:.7}
+    .rn-room b{font-family:'Playfair Display',serif;font-size:1.7rem;line-height:1;text-align:center}
+    .rn-mid{flex:1;min-width:0}
+    .rn-name{font-weight:700;font-size:.78rem;color:var(--ch);margin-bottom:.3rem}
+    .rn-items{font-size:.72rem;color:#555;line-height:1.5;margin-bottom:.4rem}
+    .rn-it span{font-weight:700;color:var(--m)}
+    .rn-pay{display:inline-block;font-size:.58rem;font-weight:700;padding:.2rem .55rem;border-radius:100px;background:rgba(95,20,49,.06);color:var(--m)}
+    .rn-pay.cash{background:rgba(45,106,79,.13);color:var(--success)}
+    .rn-act{display:flex;align-items:center}
+    .rn-done{background:var(--success);color:#fff;border:none;border-radius:8px;padding:.6rem .7rem;font-family:'Inter',sans-serif;font-weight:700;font-size:.72rem;cursor:pointer;white-space:nowrap}
+    .rn-prep{background:#eee;color:#999;border:none;border-radius:8px;padding:.6rem .7rem;font-size:.72rem;font-weight:700;white-space:nowrap}
+    @media(max-width:480px){.runner-feed{grid-template-columns:1fr}}
+    .me-row{background:#fff;border:1px solid rgba(95,20,49,.08);border-radius:10px;padding:.7rem;margin-bottom:.7rem}
+    .me-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+    .me-grid label{font-size:.55rem;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.05em;display:flex;flex-direction:column;gap:.2rem}
+    .me-grid input{padding:.4rem .5rem;border:1.5px solid rgba(95,20,49,.14);border-radius:6px;font-family:'Inter',sans-serif;font-size:.78rem;background:#fff}
+    .me-del{margin-top:.5rem;background:rgba(155,34,38,.08);color:var(--danger);border:none;border-radius:6px;padding:.35rem .8rem;font-size:.62rem;font-weight:700;cursor:pointer}
+    .me-bar{display:flex;gap:.5rem;margin-top:1rem;position:sticky;bottom:0;background:var(--cream);padding:.5rem 0 0}
+    .me-bar button{flex:1;padding:.6rem;border-radius:8px;font-family:'Inter',sans-serif;font-weight:700;font-size:.74rem;cursor:pointer}
     .page{display:none}.page.active{display:block}
 
     /* ── HERO ── */
@@ -138,6 +165,7 @@
     .qr-ph{width:170px;height:170px;margin:0 auto .7rem;background:#fff;border:2px dashed rgba(95,20,49,.16);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.3rem}
     .qr-ph svg{width:36px;height:36px;stroke:var(--m);fill:none;stroke-width:1.2;opacity:.3}
     .qr-ph span{font-size:.58rem;color:#bbb;font-weight:600}
+    .qr-ph.filled{border-style:solid;border-color:rgba(95,20,49,.08);background:#fff}
     .qr-lbl{font-size:.66rem;color:#888;margin-bottom:.15rem}
     .qr-amt{font-family:'Playfair Display',serif;font-weight:900;font-size:1.5rem;color:var(--m);margin-bottom:.15rem}
     .qr-note{font-size:.58rem;color:#bbb;max-width:260px;margin:0 auto}
@@ -297,7 +325,7 @@
       <a href="javascript:void(0)" onclick="switchPage('track')" data-page="track" data-i18n="track">Track Order</a>
     </div>
     <div class="nav-right">
-      <button id="langBtn" onclick="toggleLang()" style="background:none;border:1.5px solid rgba(95,20,49,.15);border-radius:100px;padding:.25rem .6rem;font-size:.6rem;font-weight:700;color:var(--m);cursor:pointer;margin-right:.4rem;font-family:'Inter',sans-serif">ไทย</button>
+      <div class="lang-seg" id="langSeg"><button data-l="en" onclick="setLang('en')">EN</button><button data-l="th" onclick="setLang('th')">ไทย</button></div>
       <img src="eis-logo.png" alt="EIS">
       <button class="nt" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
@@ -310,7 +338,7 @@
       <div class="proj-inner">
         <div class="pbe">EIS '28 · Class of 2028</div>
         <h1>Junior Film Show</h1>
-        <p data-i18n="heroSub">October 26, 2026 &bull; Official Food &amp; Drinks</p>
+        <p>October 26, 2026 &bull; Official Food &amp; Drinks</p>
       </div>
     </div>
     <div class="cat-bar"><div class="cat-inner" id="catTabs"></div></div>
@@ -318,7 +346,7 @@
       <div class="grid" id="productGrid"></div>
       <div style="margin-top:1.5rem;padding:.7rem 1rem;background:rgba(95,20,49,.04);border-radius:8px;display:flex;align-items:center;justify-content:center;gap:.5rem;flex-wrap:wrap">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--m)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-        <span style="font-size:.7rem;color:var(--m)"><span data-i18n="needHelp">Need help with your order? Call us at</span> <strong>0XX-XXX-XXXX</strong></span>
+        <span style="font-size:.7rem;color:var(--m)">Need help with your order? Call us at <strong>0XX-XXX-XXXX</strong></span>
       </div>
     </div>
   </div>
@@ -331,7 +359,7 @@
     </div>
     <div class="track-wrap">
       <div style="display:flex;gap:.5rem;margin-bottom:1rem">
-        <input type="text" id="trackInput" placeholder="e.g. JFS-001 or just 1" data-i18n-ph="trackPh" style="flex:1;padding:.6rem .8rem;border:1.5px solid rgba(95,20,49,.14);border-radius:8px;font-family:'Inter',sans-serif;font-size:.82rem;background:#fff">
+        <input type="text" id="trackInput" placeholder="e.g. JFS-001 or just 1" style="flex:1;padding:.6rem .8rem;border:1.5px solid rgba(95,20,49,.14);border-radius:8px;font-family:'Inter',sans-serif;font-size:.82rem;background:#fff">
         <button class="btn-full" style="width:auto;padding:.6rem 1.5rem;border-radius:8px" onclick="trackOrder()" data-i18n="trackBtn">Track</button>
       </div>
       <div id="myOrdersList"></div>
@@ -363,35 +391,14 @@
           <h2 id="admTabTitle">All Orders</h2>
           <div class="adm-btns">
             <button class="ab" id="shopToggleBtn" onclick="toggleShop()" style="background:var(--success);color:#fff">🔓 Shop Open</button>
-            <button class="ab" onclick="switchPage('runner')" style="background:#1B4D8E;color:#fff">🛵 Runner</button>
-            <button class="ab" onclick="openMenu()" style="background:var(--m);color:#fff">🍔 Edit Menu</button>
+            <button class="ab" id="viewToggleBtn" onclick="toggleAdmView()" style="background:#1565C0;color:#fff">🛵 Runner View</button>
+            <button class="ab" onclick="openMenu()" style="background:#fff;color:var(--m);border:1.5px solid var(--m)">✎ Edit Menu</button>
             <button class="ab ab-m" onclick="exportCSV()">Export CSV</button>
             <button class="ab ab-d" onclick="clearAll()">Clear</button>
           </div>
         </div>
         <div class="order-feed reveal" id="orderFeed"><div class="of-empty">No orders yet. New orders will appear automatically.</div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══════════ DELIVERY RUNNER ══════════ -->
-  <div class="page" id="page-runner">
-    <div class="adm-banner" style="background:#1B4D8E"><div class="pbe">Junior Film Show '26</div><h1>Delivery Runner</h1><p>Pick up &amp; deliver to classrooms</p></div>
-    <div class="adm-wrap">
-      <div id="runLogin" class="adm-login">
-        <h3>Runner Access</h3>
-        <div class="fg"><label>Runner Code</label><input type="password" id="runPass" placeholder="Enter code" onkeydown="if(event.key==='Enter')runnerDoLogin()"></div>
-        <button class="btn-full" style="margin-top:.5rem" onclick="runnerDoLogin()">Enter</button>
-      </div>
-      <div id="runDash" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin:.2rem 0 .8rem">
-          <h2 style="font-family:'Playfair Display',serif;font-style:italic;color:var(--m);font-size:1.1rem;margin:0">Out for Delivery <span style="display:inline-block;min-width:22px;text-align:center;background:var(--m);color:#fff;border-radius:100px;font-size:.7rem;font-family:'Inter',sans-serif;padding:.05rem .4rem" id="runCountDel">0</span></h2>
-        </div>
-        <div id="runDelivering" style="display:flex;flex-direction:column;gap:.8rem;margin-bottom:1.6rem"></div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin:.2rem 0 .8rem">
-          <h2 style="font-family:'Playfair Display',serif;font-style:italic;color:#B8860B;font-size:1.1rem;margin:0">In the Kitchen <span style="display:inline-block;min-width:22px;text-align:center;background:#E9C46A;color:#5a4a14;border-radius:100px;font-size:.7rem;font-family:'Inter',sans-serif;padding:.05rem .4rem" id="runCountCook">0</span></h2>
-        </div>
-        <div id="runCooking" style="display:flex;flex-direction:column;gap:.8rem"></div>
+        <div class="runner-feed reveal" id="runnerFeed" style="display:none"></div>
       </div>
     </div>
   </div>
@@ -408,7 +415,7 @@
     <div class="drw-head"><h3><span data-i18n="basket">Your Basket</span> <span id="drwCount"></span></h3><button class="drw-x" onclick="closeDrw()">&times;</button></div>
     <div class="drw-body" id="drwBody"></div>
     <div class="drw-foot" id="drwFoot" style="display:none">
-      <div class="df-row"><span class="df-lbl" data-i18n="total">Total</span><span class="df-val" id="drwTotal">฿0</span></div>
+      <div class="df-row"><span class="df-lbl">Total</span><span class="df-val" id="drwTotal">฿0</span></div>
       <button class="btn-full" onclick="openCo()" data-i18n="proceedCheckout">Proceed to Checkout</button>
     </div>
   </div>
@@ -416,11 +423,11 @@
   <!-- CHECKOUT -->
   <div class="co-ov" id="coOv">
     <div class="co-panel">
-      <div class="co-hd"><h3 data-i18n="checkout">Checkout</h3><button class="co-x" onclick="closeCo()">&times;</button></div>
+      <div class="co-hd"><h3>Checkout</h3><button class="co-x" onclick="closeCo()">&times;</button></div>
       <div class="co-bd">
-        <div class="co-sec"><h4 data-i18n="orderSummary">Order Summary</h4><div id="coItems"></div>
+        <div class="co-sec"><h4>Order Summary</h4><div id="coItems"></div>
           <div style="display:flex;justify-content:space-between;padding:.5rem 0 0;border-top:2px solid var(--m);margin-top:.3rem">
-            <span style="font-family:'Playfair Display',serif;font-style:italic;font-weight:700;color:var(--m)" data-i18n="total">Total</span>
+            <span style="font-family:'Playfair Display',serif;font-style:italic;font-weight:700;color:var(--m)">Total</span>
             <span style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.2rem;color:var(--m)" id="coTotal">฿0</span>
           </div>
         </div>
@@ -430,7 +437,7 @@
           <div class="fg"><label data-i18n="notes">Notes (optional)</label><textarea id="coNotes" placeholder="Allergies, special requests, etc." data-i18n-ph="notesPh"></textarea></div>
           <div style="background:rgba(95,20,49,.04);border-radius:8px;padding:.6rem .8rem;display:flex;align-items:center;gap:.5rem;margin-top:.3rem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--m)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-            <span style="font-size:.68rem;color:var(--m)"><span data-i18n="callUs">Questions? Call us:</span> <strong>0XX-XXX-XXXX</strong></span>
+            <span style="font-size:.68rem;color:var(--m)"><span data-i18n="callUs">Questions? Call us:</span> <strong id="contactPhone">0XX-XXX-XXXX</strong></span>
           </div>
         </div>
         <div class="co-sec"><h4 data-i18n="payMethod">Payment Method</h4>
@@ -441,11 +448,11 @@
           <!-- QR section (shown when QR selected) -->
           <div id="payQRSection">
             <div class="qr-box">
-              <div class="qr-ph"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="4" height="4"/><line x1="21" y1="14" x2="21" y2="21"/><line x1="14" y1="21" x2="21" y2="21"/></svg><span>QR Code</span></div>
-              <div class="qr-lbl"><span data-i18n="payTo">Pay to:</span> <strong data-i18n="treasurer">Class Treasurer</strong></div>
+              <div class="qr-ph" id="ppQRImg"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>QR Code</span></div>
+              <div class="qr-lbl"><span data-i18n="payToLbl">Pay to:</span> <strong id="ppName">Class Treasurer</strong></div>
               <div class="qr-amt" id="coQRAmt">฿0</div>
               <div class="qr-note" data-i18n="scanNote">Scan with any Thai banking app.</div>
-              <button onclick="downloadQR()" style="margin-top:.6rem;padding:.4rem 1.2rem;border-radius:100px;border:1.5px solid var(--m);background:none;font-family:'Inter',sans-serif;font-size:.65rem;font-weight:600;color:var(--m);cursor:pointer;display:inline-flex;align-items:center;gap:.3rem;transition:background .2s,color .2s" onmouseover="this.style.background='var(--m)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='var(--m)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span data-i18n="saveQR">Save QR Code</span></button>
+              <button onclick="downloadQR()" style="margin-top:.6rem;padding:.4rem 1.2rem;border-radius:100px;border:1.5px solid var(--m);background:none;font-family:'Inter',sans-serif;font-size:.65rem;font-weight:600;color:var(--m);cursor:pointer;display:inline-flex;align-items:center;gap:.3rem;transition:background .2s,color .2s" onmouseover="this.style.background='var(--m)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='var(--m)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span data-i18n="qrSaveBtn">Save QR Code</span></button>
             </div>
             <div style="margin-top:.8rem"><h4 style="font-family:'Playfair Display',serif;font-style:italic;font-size:.85rem;font-weight:700;color:var(--m);margin-bottom:.5rem" data-i18n="uploadSlip">Upload Payment Slip</h4>
               <div class="slip-drop" id="coSlipDrop" onclick="document.getElementById('coSlipIn').click()">
@@ -484,6 +491,20 @@
     </div>
   </div>
 
+  <!-- MENU EDITOR -->
+  <div class="modal-ov" id="menuMod">
+    <div class="modal-box" style="max-width:640px">
+      <button class="modal-x" onclick="closeMenu()">&times;</button>
+      <h3 style="font-family:'Playfair Display',serif;font-style:italic;color:var(--m);margin-bottom:.2rem;font-size:1.1rem">Edit Menu</h3>
+      <p style="font-size:.66rem;color:#999;margin-bottom:.8rem">Add items and change prices &amp; stock. Saving syncs to all devices when the <code>catalog</code> table exists (see the SQL file).</p>
+      <div id="menuList"></div>
+      <div class="me-bar">
+        <button onclick="addMenuRow()" style="background:#fff;border:1.5px solid var(--m);color:var(--m)">+ Add Item</button>
+        <button onclick="saveMenu()" style="background:var(--m);color:#fff;border:none">Save &amp; Sync</button>
+      </div>
+    </div>
+  </div>
+
   <!-- SLIP MODAL -->
   <div class="modal-ov" id="slipMod">
     <div class="modal-box">
@@ -493,43 +514,6 @@
       <div id="mSlipInfo" style="margin-top:.7rem;font-size:.72rem;color:#666"></div>
     </div>
   </div>
-
-  <!-- REPLY / RESUBMIT MODAL -->
-  <div class="modal-ov" id="replyMod">
-    <div class="modal-box" style="max-height:88vh;overflow-y:auto">
-      <button class="modal-x" onclick="closeReply()">&times;</button>
-      <h3 style="font-family:'Playfair Display',serif;font-style:italic;color:var(--m);margin-bottom:.3rem;font-size:1.05rem" data-i18n="replyTitle">Fix or Reply to Your Order</h3>
-      <p style="font-size:.72rem;color:#777;line-height:1.55;margin-bottom:.7rem" data-i18n="replyIntro">Something wrong? Upload a new payment slip and/or send us a message. Your order will go back to the team for review.</p>
-      <div id="replyOrderInfo" style="font-size:.74rem;color:var(--m);font-weight:700;margin-bottom:.8rem"></div>
-      <h4 style="font-family:'Inter',sans-serif;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#999;margin-bottom:.4rem" data-i18n="newSlip">Upload a New Payment Slip</h4>
-      <div class="slip-drop" id="replySlipDrop" onclick="document.getElementById('replySlipIn').click()">
-        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        <p data-i18n="uploadText">Click to upload or drag &amp; drop</p><small>PNG, JPG up to 5MB</small>
-        <input type="file" id="replySlipIn" accept="image/*" style="display:none">
-      </div>
-      <div class="slip-prev" id="replySlipPrev"><img id="replySlipImg" src="" alt="Slip"></div>
-      <h4 style="font-family:'Inter',sans-serif;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#999;margin:.9rem 0 .4rem" data-i18n="yourMsg">Message to the team (optional)</h4>
-      <textarea id="replyMsg" placeholder="e.g. I've attached the correct slip, sorry!" data-i18n-ph="msgPh" style="width:100%;min-height:70px;padding:.6rem .7rem;border:1.5px solid rgba(95,20,49,.14);border-radius:8px;font-family:'Inter',sans-serif;font-size:.78rem;background:#fff;resize:vertical"></textarea>
-      <button class="btn-full" style="margin-top:.7rem" onclick="submitReply()" data-i18n="sendReply">Resend Order</button>
-    </div>
-  </div>
-
-  <!-- MENU EDITOR MODAL -->
-  <div class="modal-ov" id="menuMod">
-    <div class="modal-box" style="max-width:560px;padding:0;display:flex;flex-direction:column">
-      <div style="padding:1.1rem 1.2rem .7rem;border-bottom:1px solid rgba(95,20,49,.08);display:flex;justify-content:space-between;align-items:center;flex-shrink:0">
-        <div><h3 style="font-family:'Playfair Display',serif;font-style:italic;color:var(--m);font-size:1.15rem;margin:0">Edit Menu</h3>
-        <div style="font-size:.68rem;color:#999;margin-top:.15rem">Edit prices, stock & items. Saves here + syncs to all devices.</div></div>
-        <button onclick="closeMenu()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#999;line-height:1">&times;</button>
-      </div>
-      <div id="menuRows" style="flex:1 1 auto;overflow-y:auto;padding:.9rem 1rem;min-height:120px"></div>
-      <div style="padding:.8rem 1rem;border-top:1px solid rgba(95,20,49,.08);display:flex;gap:.6rem;flex-shrink:0;background:var(--cream);border-radius:0 0 12px 12px">
-        <button onclick="addMenuRow()" style="flex:1;padding:.7rem;border-radius:9px;border:1.5px dashed var(--m);background:none;color:var(--m);font-family:'Inter',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer">+ Add Item</button>
-        <button onclick="saveMenu()" style="flex:1;padding:.7rem;border-radius:9px;border:none;background:var(--m);color:#fff;font-family:'Inter',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer">Save Menu</button>
-      </div>
-    </div>
-  </div>
-  <datalist id="catList"></datalist>
 
   <div class="toast-box" id="toastBox"></div>
 
@@ -549,38 +533,36 @@
   <script>
   (function(){
     const ADMIN_PASS='eis28film';
+    // ═══════ EVENT CONFIG — EDIT THESE ═══════
+    // PromptPay ID = the treasurer's phone number (e.g. '0812345678')
+    //   OR 13-digit Thai national ID, OR 15-digit e-wallet ID.
+    const PROMPTPAY_ID   = '0XXXXXXXXX';        // ← treasurer PromptPay number
+    const PROMPTPAY_NAME = 'Class Treasurer';   // ← name shown above the QR
+    const CONTACT_PHONE  = '0XX-XXX-XXXX';      // ← help line shown to buyers
     const STORE_KEY='jfs_orders';
     const STOCK_KEY='jfs_stock';
     const MY_KEY='jfs_my_orders';
 
-    // Thai labels for categories (English category string -> Thai). Add here if you add a new category.
-    const CAT_TH={
-      'Shaved Ice Shop':'ร้านน้ำแข็งไส','Soda Shop':'ร้านน้ำอัดลม','Milkshake Shop':'ร้านมิลค์เชค',
-      'Mama Noodles Shop':'ร้านมาม่า','Snacks Shop':'ร้านของทานเล่น','Popcorn Shop':'ร้านป๊อปคอร์น',
-      'Cotton Candy Shop':'ร้านสายไหม'
-    };
-    // Default menu — used ONLY the first time / as a fallback. After that the live menu
-    // comes from the Edit Menu tool (saved to this browser + Supabase). Edit prices & items there.
-    const DEFAULT_PRODUCTS = [
-  {id:'shaved-ice', cat:'Shaved Ice Shop', name:'Shaved Ice', nameTh:'น้ำแข็งไส', desc:'Fluffy snow-like ice topped with sweet syrups and condensed milk.', descTh:'น้ำแข็งไสนุ่มฟู ราดน้ำเชื่อมหวานและนมข้น', price:40, badge:'Popular', img:'', stock:50},
-  {id:'sodas', cat:'Soda Shop', name:'Sodas', nameTh:'น้ำอัดลม', desc:'Refreshing, fizzy, and ice-cold bubbly sodas in assorted flavors.', descTh:'น้ำอัดลมเย็นซ่า สดชื่น หลากหลายรสชาติ', price:25, badge:'', img:'', stock:100},
-  {id:'milkshake', cat:'Milkshake Shop', name:'Milkshake', nameTh:'มิลค์เชค', desc:'Sweet and creamy iced milk drinks to cool you down.', descTh:'เครื่องดื่มนมปั่นเย็น หวานมัน คลายร้อน', price:35, badge:'', img:'', stock:60},
-  {id:'mama-noodles', cat:'Mama Noodles Shop', name:'Mama (Noodles)', nameTh:'มาม่า', desc:'Hot and savory Thai Mama instant noodles with yummy seasonings.', descTh:'มาม่าต้มร้อนๆ รสจัดจ้าน อร่อยถึงใจ', price:30, badge:'Hot', img:'', stock:80},
-  {id:'nuggets', cat:'Snacks Shop', name:'Nuggets', nameTh:'นักเก็ต', desc:'Golden, crispy bite-sized chicken nuggets perfect for dipping.', descTh:'นักเก็ตไก่ทอดกรอบ กัดง่าย จิ้มซอสได้', price:45, badge:'', img:'', stock:50},
-  {id:'fries', cat:'Snacks Shop', name:'Fries', nameTh:'เฟรนช์ฟรายส์', desc:'Hot, crispy, and perfectly salted golden French fries.', descTh:'เฟรนช์ฟรายส์ทอดกรอบ ร้อนๆ เค็มกำลังดี', price:35, badge:'', img:'', stock:60},
-  {id:'chicken-pop', cat:'Snacks Shop', name:'Chicken Pop', nameTh:'ไก่ป๊อป', desc:'Juicy, bite-sized fried chicken chunks coated in savory seasoning.', descTh:'ไก่ป๊อปทอดชิ้นพอดีคำ ฉ่ำ คลุกเครื่องปรุงรสเด็ด', price:50, badge:'Popular', img:'', stock:50},
-  {id:'taro', cat:'Snacks Shop', name:'Taro', nameTh:'เผือกทอด', desc:'Sweet, crispy, and earthy purple taro snacks.', descTh:'เผือกทอดกรอบ หวานมัน หอมเผือกแท้', price:30, badge:'', img:'', stock:40},
-  {id:'popcorn', cat:'Popcorn Shop', name:'Popcorn', nameTh:'ป๊อปคอร์น', desc:'Crunchy, buttery, and freshly popped theater-style popcorn.', descTh:'ป๊อปคอร์นกรอบ หอมเนย คั่วสดใหม่สไตล์โรงหนัง', price:40, badge:'', img:'', stock:50},
-  {id:'cotton-candy', cat:'Cotton Candy Shop', name:'Cotton Candy', nameTh:'สายไหม', desc:'Light, fluffy, and melt-in-your-mouth spun sugar clouds.', descTh:'สายไหมฟูนุ่ม ละลายในปาก หวานละมุน', price:25, badge:'New', img:'', stock:30}
-];
-    const CATALOG_KEY='jfs_catalog';
+    const DEFAULT_PRODUCTS=[
+      {id:'takoyaki',cat:'Food',name:'Takoyaki (6 pcs)',name_th:'ทาโกะยากิ (6 ลูก)',desc:'Crispy octopus balls with mayo and bonito flakes.',desc_th:'ลูกชิ้นปลาหมึกกรอบนอกนุ่มใน ราดมายองเนสและปลาแห้ง',price:60,badge:'Popular',img:'',stock:50},
+      {id:'corn-dog',cat:'Food',name:'Korean Corn Dog',name_th:'คอร์นด็อกเกาหลี',desc:'Mozzarella-filled corn dog coated in crispy batter.',desc_th:'ฮอทดอกไส้ชีสมอสซาเรลล่า ชุบแป้งทอดกรอบ',price:50,badge:'',img:'',stock:50},
+      {id:'waffle',cat:'Food',name:'Bubble Waffle',name_th:'บับเบิลวาฟเฟิล',desc:'Hong Kong-style egg waffle with your choice of topping.',desc_th:'วาฟเฟิลไข่สไตล์ฮ่องกง เลือกท็อปปิ้งได้ตามใจ',price:65,badge:'',img:'',stock:40},
+      {id:'churros',cat:'Food',name:'Churros (3 pcs)',name_th:'ชูโรส (3 ชิ้น)',desc:'Cinnamon sugar churros with chocolate dipping sauce.',desc_th:'ชูโรสน้ำตาลอบเชย เสิร์ฟพร้อมซอสช็อกโกแลต',price:45,badge:'',img:'',stock:60},
+      {id:'onigiri',cat:'Food',name:'Onigiri Set',name_th:'ข้าวปั้นโอนิกิริ (เซ็ต)',desc:'Two rice balls with salmon and tuna mayo filling.',desc_th:'ข้าวปั้น 2 ลูก ไส้แซลมอนและทูน่ามายอง',price:55,badge:'New',img:'',stock:30},
+      {id:'crepe',cat:'Food',name:'Nutella Banana Crepe',name_th:'เครปนูเทลล่ากล้วย',desc:'Thin crepe with Nutella spread and fresh banana slices.',desc_th:'เครปแผ่นบาง ทานูเทลล่าและกล้วยหอมสด',price:60,badge:'',img:'',stock:40},
+      {id:'milk-tea',cat:'Drinks',name:'Thai Milk Tea',name_th:'ชาเย็น',desc:'Classic Thai cha yen — sweet, creamy, iced.',desc_th:'ชาเย็นไทยรสกลมกล่อม หวานมันเย็นชื่นใจ',price:35,badge:'',img:'',stock:80},
+      {id:'lemonade',cat:'Drinks',name:'Pink Lemonade',name_th:'พิงค์เลมอนเนด',desc:'Freshly squeezed lemonade with strawberry syrup.',desc_th:'น้ำมะนาวคั้นสดผสมไซรัปสตรอว์เบอร์รี่',price:30,badge:'',img:'',stock:80},
+      {id:'cocoa',cat:'Drinks',name:'Iced Cocoa',name_th:'โกโก้เย็น',desc:'Rich chocolate cocoa served ice cold.',desc_th:'โกโก้เข้มข้นหอมมัน เสิร์ฟเย็นชื่นใจ',price:35,badge:'',img:'',stock:60},
+    ];
+    // Catalog = editable product list. Loaded from localStorage cache, synced via Supabase 'catalog' table.
+    const CAT_KEY='jfs_products';
     function loadCatalog(){
-      try{const c=JSON.parse(localStorage.getItem(CATALOG_KEY)||'null');if(Array.isArray(c)&&c.length)return c}catch(e){}
-      return DEFAULT_PRODUCTS.map(p=>({...p}));
+      try{const raw=localStorage.getItem(CAT_KEY);if(raw){const a=JSON.parse(raw);if(Array.isArray(a)&&a.length)return a}}catch(e){}
+      return JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
     }
-    let products = loadCatalog();
+    let products=loadCatalog();
 
-    let cart={},stockMap={},slipData='',admLoggedIn=false,runnerLoggedIn=false,activeAdmTab='all',activeCat='All';
+    let cart={},stockMap={},slipData='',admLoggedIn=false,activeAdmTab='all',activeCat='All',admView='kitchen',menuDraft=[];
     const ph='<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>';
 
     // ═══════ SUPABASE + LOCAL STORAGE ═══════
@@ -614,19 +596,10 @@
             payment_method:r.payment_method||'qr',
             reject_reason:r.reject_reason||'',delete_reason:r.delete_reason||'',
             report_reason:r.report_reason||'',reported:!!r.reported,
-            customer_message:r.customer_message||'',resubmitted:!!r.resubmitted,
             _sb_id:r.id // keep Supabase UUID for updates
           }));
           localStorage.setItem(STORE_KEY,JSON.stringify(orders));
         }
-        // Sync live menu (catalog) — optional table
-        try{
-          const{data:cat}=await sb.from('catalog').select('*').order('sort_order',{ascending:true});
-          if(cat&&cat.length){
-            const mapped=cat.map(r=>({id:r.product_id,cat:r.category||'Other',name:r.name||'',nameTh:r.name_th||'',desc:r.description||'',descTh:r.description_th||'',price:Number(r.price)||0,badge:r.badge||'',img:'',stock:r.stock??0}));
-            localStorage.setItem(CATALOG_KEY,JSON.stringify(mapped));products=mapped;
-          }
-        }catch(e){}
         // Sync stock
         const{data:stockData}=await sb.from('stock').select('*');
         if(stockData){
@@ -637,6 +610,10 @@
           });
           localStorage.setItem(STOCK_KEY,JSON.stringify(s));
         }
+        // Sync catalog (menu edits) — gracefully ignored if table doesn't exist
+        try{const{data:cat}=await sb.from('catalog').select('products').eq('id','main').limit(1);
+          if(cat&&cat[0]&&Array.isArray(cat[0].products)&&cat[0].products.length){products=cat[0].products;localStorage.setItem(CAT_KEY,JSON.stringify(products))}
+        }catch(e){}
       }catch(e){console.warn('Sync failed:',e)}
     }
 
@@ -707,7 +684,7 @@
       en:{shop:'Shop',track:'Track Order',basket:'Your Basket',items:'items',total:'Total',checkout:'Checkout',
         proceedCheckout:'Proceed to Checkout',placeOrder:'Place Order',placingOrder:'Placing order...',
         name:'Full Name',cls:'Class / Section',room:'Deliver to Room',notes:'Notes (optional)',
-        payMethod:'Payment Method',qr:'PromptPay QR',cash:'Cash on Delivery',payTo:'Pay to:',
+        payMethod:'Payment Method',qr:'PromptPay QR',cash:'Cash on Delivery',payTo:'Pay to: Class Treasurer',
         scanNote:'Scan with any Thai banking app.',cashNote:'Please have the exact amount ready. Our delivery person will collect payment at your classroom.',
         payWhenDeliver:'Pay When We Deliver',uploadSlip:'Upload Payment Slip',uploadText:'Click to upload or drag & drop',
         thankYou:'Thank You!',thankMsg:'Your order has been placed! Our team will verify your payment and start preparing your food. It\'ll be delivered to your classroom soon.',
@@ -719,16 +696,11 @@
         callUs:'Questions? Call us:',soldOut:'Sold Out',left:'left',addedToBasket:'added',
         emptyBasket:'Basket is empty',addItems:'Add items from the shop',cooldownMsg:'Please wait before placing another order',
         shopClosed:'Ordering is currently closed. Please check back later.',
-        namePh:'Your name',clsPh:'e.g. 11A',roomPh:'e.g. 301',notesPh:'Allergies, special requests, etc.',
-        each:'each',remove:'Remove',orderSummary:'Order Summary',yourInfo:'Your Information',trackPh:'e.g. JFS-001 or just 1',saveQR:'Save QR Code',treasurer:'Class Treasurer',
-        heroSub:'October 26, 2026 \u2022 Official Food & Drinks',needHelp:'Need help with your order? Call us at',
-        replyTitle:'Fix or Reply to Your Order',replyIntro:'Something wrong? Upload a new payment slip and/or send us a message. Your order will go back to the team for review.',
-        newSlip:'Upload a New Payment Slip',yourMsg:'Message to the team (optional)',msgPh:'e.g. I\'ve attached the correct slip, sorry!',sendReply:'Resend Order',replied:'Order resent for review!',replyNeedSomething:'Add a new slip or a message first',
-        fixReorder:'Fix / Reply'},
+        namePh:'Your name',clsPh:'e.g. 11A',roomPh:'e.g. 301',notesPh:'Allergies, special requests, etc.',yourInfo:'Your Information',perEach:'each',remove:'Remove',outStock:'Out of stock',notEnough:'Not enough stock',qrSaveBtn:'Save QR Code',payToLbl:'Pay to:',all:'All',food:'Food',drinks:'Drinks',fixResend:'Fix & Re-order',enterNum:'Enter an order number',copied:'Copied!',scanReady:'Scan to pay'},
       th:{shop:'ร้านค้า',track:'ติดตามออเดอร์',basket:'ตะกร้าของคุณ',items:'รายการ',total:'รวม',checkout:'ชำระเงิน',
         proceedCheckout:'ดำเนินการชำระเงิน',placeOrder:'สั่งซื้อ',placingOrder:'กำลังสั่ง...',
         name:'ชื่อ-นามสกุล',cls:'ห้อง / ชั้น',room:'ส่งที่ห้อง',notes:'หมายเหตุ (ถ้ามี)',
-        payMethod:'วิธีชำระเงิน',qr:'พร้อมเพย์ QR',cash:'เก็บเงินปลายทาง',payTo:'ชำระให้:',
+        payMethod:'วิธีชำระเงิน',qr:'พร้อมเพย์ QR',cash:'เก็บเงินปลายทาง',payTo:'ชำระให้: เหรัญญิก',
         scanNote:'สแกนด้วยแอปธนาคาร',cashNote:'กรุณาเตรียมเงินให้พอดี ผู้ส่งจะเก็บเงินที่ห้องเรียน',
         payWhenDeliver:'จ่ายตอนรับของ',uploadSlip:'อัปโหลดสลิป',uploadText:'กดเพื่ออัปโหลดหรือลากไฟล์',
         thankYou:'ขอบคุณ!',thankMsg:'ออเดอร์ถูกส่งแล้ว! ทีมงานจะตรวจสอบและเตรียมอาหารให้คุณ จะส่งถึงห้องเรียนเร็วๆ นี้',
@@ -740,28 +712,24 @@
         callUs:'สอบถาม โทร:',soldOut:'หมดแล้ว',left:'เหลือ',addedToBasket:'เพิ่มแล้ว',
         emptyBasket:'ตะกร้าว่าง',addItems:'เพิ่มรายการจากร้านค้า',cooldownMsg:'กรุณารอสักครู่ก่อนสั่งใหม่',
         shopClosed:'ร้านปิดรับออเดอร์แล้ว กรุณากลับมาใหม่ภายหลัง',
-        namePh:'ชื่อของคุณ',clsPh:'เช่น 11A',roomPh:'เช่น 301',notesPh:'แพ้อาหาร หรือคำขอพิเศษ',
-        each:'ต่อชิ้น',remove:'ลบ',orderSummary:'สรุปคำสั่งซื้อ',yourInfo:'ข้อมูลของคุณ',trackPh:'เช่น JFS-001 หรือแค่ 1',saveQR:'บันทึก QR',treasurer:'เหรัญญิก',
-        heroSub:'26 ตุลาคม 2026 \u2022 อาหารและเครื่องดื่มอย่างเป็นทางการ',needHelp:'ต้องการความช่วยเหลือ? โทร',
-        replyTitle:'แก้ไขหรือตอบกลับออเดอร์',replyIntro:'มีบางอย่างผิดพลาด? อัปโหลดสลิปใหม่ และ/หรือ ส่งข้อความถึงทีมงาน ออเดอร์จะถูกส่งกลับไปตรวจสอบอีกครั้ง',
-        newSlip:'อัปโหลดสลิปใหม่',yourMsg:'ข้อความถึงทีมงาน (ถ้ามี)',msgPh:'เช่น แนบสลิปที่ถูกต้องมาแล้ว ขอโทษด้วยนะ',sendReply:'ส่งออเดอร์อีกครั้ง',replied:'ส่งออเดอร์เพื่อตรวจสอบใหม่แล้ว!',replyNeedSomething:'กรุณาเพิ่มสลิปใหม่หรือข้อความก่อน',
-        fixReorder:'แก้ไข / ตอบกลับ'}
+        namePh:'ชื่อของคุณ',clsPh:'เช่น 11A',roomPh:'เช่น 301',notesPh:'แพ้อาหาร หรือคำขอพิเศษ',yourInfo:'ข้อมูลของคุณ',perEach:'ต่อชิ้น',remove:'ลบ',outStock:'สินค้าหมด',notEnough:'สินค้าไม่พอ',qrSaveBtn:'บันทึก QR',payToLbl:'ชำระให้:',all:'ทั้งหมด',food:'อาหาร',drinks:'เครื่องดื่ม',fixResend:'แก้ไขและสั่งใหม่',enterNum:'กรอกหมายเลขออเดอร์',copied:'คัดลอกแล้ว!',scanReady:'สแกนเพื่อจ่าย'}
     };
     function t(key){return T[lang]?.[key]||T.en[key]||key}
-    // Walk every element tagged with data-i18n / data-i18n-ph and swap its text/placeholder.
+    function pname(p){return (lang==='th'&&p.name_th)?p.name_th:p.name}
+    function pdesc(p){return (lang==='th'&&p.desc_th)?p.desc_th:p.desc}
+    function catLabel(c){return c==='All'?t('all'):c==='Food'?t('food'):c==='Drinks'?t('drinks'):c}
     function applyLang(){
+      document.querySelectorAll('#langSeg button').forEach(b=>b.classList.toggle('on',b.dataset.l===lang));
+      document.querySelectorAll('[data-i18n]').forEach(el=>{const v=t(el.getAttribute('data-i18n'));if(v)el.textContent=v});
+      document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const v=t(el.getAttribute('data-i18n-ph'));if(v)el.placeholder=v});
       document.documentElement.lang=lang;
-      document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');const v=t(k);if(v)el.textContent=v});
-      document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const k=el.getAttribute('data-i18n-ph');const v=t(k);if(v)el.setAttribute('placeholder',v)});
-      const lb=document.getElementById('langBtn');if(lb)lb.textContent=lang==='en'?'ไทย':'EN';
-      renderCats();renderGrid();renderDrw();
-      try{renderMyOrders()}catch(e){}
+      renderCats();renderGrid();
+      if(document.getElementById('drw').classList.contains('open'))renderDrw();
+      if(document.getElementById('coOv').classList.contains('open'))refreshCoSummary();
+      const tp=document.getElementById('page-track');if(tp&&tp.classList.contains('active'))renderMyOrders();
     }
-    window.toggleLang=function(){
-      lang=lang==='en'?'th':'en';localStorage.setItem('jfs_lang',lang);
-      applyLang();
-      toast(lang==='en'?'Switched to English':'เปลี่ยนเป็นภาษาไทย');
-    };
+    window.setLang=function(l){if(l===lang)return;lang=l;localStorage.setItem('jfs_lang',lang);applyLang();toast(lang==='en'?'Switched to English':'เปลี่ยนเป็นภาษาไทย')};
+    window.toggleLang=function(){setLang(lang==='en'?'th':'en')};
 
     // ═══════ ORDER CUTOFF (admin-controlled) ═══════
     function isShopOpen(){return localStorage.getItem('jfs_shop_open')!=='false'}
@@ -787,11 +755,8 @@
       const last=parseInt(localStorage.getItem('jfs_last_order')||'0',10);
       return Math.max(0,Math.ceil((COOLDOWN_MS-(Date.now()-last))/1000));
     }
-    function getCats(){return ['All',...new Set(products.map(p=>p.cat))]}
-    function catLabel(c){if(c==='All')return lang==='th'?'ทั้งหมด':'All';return lang==='th'?(CAT_TH[c]||c):c}
-    function pname(p){return lang==='th'&&p.nameTh?p.nameTh:p.name}
-    function pdesc(p){return lang==='th'&&p.descTh?p.descTh:(p.desc||'')}
-    function renderCats(){const cats=getCats();if(!cats.includes(activeCat))activeCat='All';document.getElementById('catTabs').innerHTML=cats.map(c=>`<button class="cat-btn${c===activeCat?' active':''}" onclick="filterCat('${c.replace(/'/g,"\\'")}')">${catLabel(c)}</button>`).join('')}
+    function getCats(){return['All',...new Set(products.map(p=>p.cat))]}
+    function renderCats(){document.getElementById('catTabs').innerHTML=getCats().map(c=>`<button class="cat-btn${c===activeCat?' active':''}" onclick="filterCat('${c}')">${catLabel(c)}</button>`).join('')}
     window.filterCat=function(c){activeCat=c;renderCats();renderGrid()};
 
     // ═══════ PRODUCT GRID ═══════
@@ -800,13 +765,13 @@
       const list=activeCat==='All'?products:products.filter(p=>p.cat===activeCat);
       document.getElementById('productGrid').innerHTML=list.map(p=>{
         const q=cart[p.id]||0,stk=stockMap[p.id]??p.stock,out=stk<=0,low=stk>0&&stk<=10;
-        return`<div class="card${out?' sold-out':''}"><div class="card-img">${p.img?`<img src="${p.img}">`:`<div class="ph">${ph}</div>`}${out?`<div class="card-badge out">${t('soldOut')}</div>`:p.badge?`<div class="card-badge">${p.badge}</div>`:''}</div><div class="card-body"><div class="card-name">${pname(p)}</div><div class="card-desc">${pdesc(p)}</div><div class="card-stock${low?' low':''}">${out?t('soldOut'):stk<=20?stk+' '+t('left'):''}</div><div class="card-bottom"><div class="card-price">฿${p.price}</div>${out?'':q===0?`<button class="card-add" onclick="addItem('${p.id}')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`:`<div class="qty-step"><button class="qty-btn" onclick="chgQty('${p.id}',-1)">−</button><div class="qty-val">${q}</div><button class="qty-btn" onclick="chgQty('${p.id}',1)">+</button></div>`}</div></div></div>`;
+        return`<div class="card${out?' sold-out':''}"><div class="card-img">${p.img?`<img src="${p.img}">`:`<div class="ph">${ph}</div>`}${out?`<div class="card-badge out">${t('soldOut')}</div>`:p.badge?`<div class="card-badge">${p.badge}</div>`:''}</div><div class="card-body"><div class="card-name">${pname(p)}</div><div class="card-desc">${pdesc(p)}</div><div class="card-stock${low?' low':''}">${out?t('outStock'):stk<=20?stk+' '+t('left'):''}</div><div class="card-bottom"><div class="card-price">฿${p.price}</div>${out?'':q===0?`<button class="card-add" onclick="addItem('${p.id}')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`:`<div class="qty-step"><button class="qty-btn" onclick="chgQty('${p.id}',-1)">−</button><div class="qty-val">${q}</div><button class="qty-btn" onclick="chgQty('${p.id}',1)">+</button></div>`}</div></div></div>`;
       }).join('');
     }
 
     // ═══════ CART ═══════
-    window.addItem=function(id){if(!isShopOpen()){toast(t('shopClosed'));return}const stk=stockMap[id]??0;if((cart[id]||0)>=stk){toast('Not enough stock');return}cart[id]=(cart[id]||0)+1;toast(pname(products.find(x=>x.id===id))+' '+t('addedToBasket'));bump();renderGrid();renderDrw()};
-    window.chgQty=function(id,d){const n=(cart[id]||0)+d;const stk=stockMap[id]??0;if(n>stk){toast('Not enough stock');return}if(n<=0)delete cart[id];else cart[id]=n;bump();renderGrid();renderDrw()};
+    window.addItem=function(id){if(!isShopOpen()){toast(t('shopClosed'));return}const stk=stockMap[id]??0;if((cart[id]||0)>=stk){toast(t('notEnough'));return}cart[id]=(cart[id]||0)+1;toast(pname(products.find(x=>x.id===id))+' '+t('addedToBasket'));bump();renderGrid();renderDrw()};
+    window.chgQty=function(id,d){const n=(cart[id]||0)+d;const stk=stockMap[id]??0;if(n>stk){toast(t('notEnough'));return}if(n<=0)delete cart[id];else cart[id]=n;bump();renderGrid();renderDrw()};
     function cCount(){return Object.values(cart).reduce((s,q)=>s+q,0)}
     function cTotal(){return Object.entries(cart).reduce((s,[id,q])=>{const p=products.find(x=>x.id===id);return s+(p?p.price*q:0)},0)}
     function bump(){const b=document.getElementById('cBadge'),n=cCount();if(n>0){b.style.display='flex';b.textContent=n;b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')}else b.style.display='none'}
@@ -818,7 +783,7 @@
       const body=document.getElementById('drwBody'),foot=document.getElementById('drwFoot'),entries=Object.entries(cart);
       document.getElementById('drwCount').textContent=entries.length?`· ${cCount()} ${t('items')}`:'';
       if(!entries.length){body.innerHTML=`<div class="drw-empty"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg><p>${t('emptyBasket')}</p><span>${t('addItems')}</span></div>`;foot.style.display='none';return}
-      body.innerHTML=entries.map(([id,q])=>{const p=products.find(x=>x.id===id);return`<div class="drw-item"><div class="di-img"><div class="ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></div></div><div class="di-info"><div class="di-name">${pname(p)}</div><div class="di-price">฿${p.price} ${t('each')}</div><div class="di-ctrl"><div class="qty-step"><button class="qty-btn" onclick="chgQty('${id}',-1)">−</button><div class="qty-val">${q}</div><button class="qty-btn" onclick="chgQty('${id}',1)">+</button></div><button class="di-rm" onclick="rmItem('${id}')">${t('remove')}</button></div></div><div style="font-family:'Playfair Display',serif;font-weight:700;color:var(--m)">฿${p.price*q}</div></div>`}).join('');
+      body.innerHTML=entries.map(([id,q])=>{const p=products.find(x=>x.id===id);return`<div class="drw-item"><div class="di-img"><div class="ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></div></div><div class="di-info"><div class="di-name">${pname(p)}</div><div class="di-price">฿${p.price} ${t('perEach')}</div><div class="di-ctrl"><div class="qty-step"><button class="qty-btn" onclick="chgQty('${id}',-1)">−</button><div class="qty-val">${q}</div><button class="qty-btn" onclick="chgQty('${id}',1)">+</button></div><button class="di-rm" onclick="rmItem('${id}')">${t('remove')}</button></div></div><div style="font-family:'Playfair Display',serif;font-weight:700;color:var(--m)">฿${p.price*q}</div></div>`}).join('');
       foot.style.display='block';document.getElementById('drwTotal').textContent='฿'+cTotal();
     }
     window.rmItem=function(id){delete cart[id];bump();renderGrid();renderDrw()};
@@ -835,10 +800,12 @@
       document.getElementById('payBtnCash').style.background=m==='cash'?'var(--m)':'#fff';
       document.getElementById('payBtnCash').style.color=m==='cash'?'#fff':'var(--ch)';
       document.getElementById('payBtnCash').style.borderColor=m==='cash'?'var(--m)':'rgba(95,20,49,.15)';
+      if(m==='qr')renderPPQR(cTotal());
       updCoBtn();
     };
 
-    window.openCo=function(){closeDrw();if(!cCount())return;document.getElementById('coItems').innerHTML=Object.entries(cart).map(([id,q])=>{const p=products.find(x=>x.id===id);return`<div style="display:flex;justify-content:space-between;padding:.3rem 0;font-size:.75rem;border-bottom:1px solid rgba(95,20,49,.04)"><span>${pname(p)} ×${q}</span><span style="font-weight:600;color:var(--m)">฿${p.price*q}</span></div>`}).join('');const t=cTotal();document.getElementById('coTotal').textContent='฿'+t;document.getElementById('coQRAmt').textContent='฿'+t;document.getElementById('coCashAmt').textContent='฿'+t;slipData='';document.getElementById('coSlipPrev').style.display='none';document.getElementById('coSlipIn').value='';payMethod='qr';setPayMethod('qr');updCoBtn();document.getElementById('coOv').classList.add('open');document.body.style.overflow='hidden'};
+    function refreshCoSummary(){document.getElementById('coItems').innerHTML=Object.entries(cart).map(([id,q])=>{const p=products.find(x=>x.id===id);if(!p)return'';return`<div style="display:flex;justify-content:space-between;padding:.3rem 0;font-size:.75rem;border-bottom:1px solid rgba(95,20,49,.04)"><span>${pname(p)} ×${q}</span><span style="font-weight:600;color:var(--m)">฿${p.price*q}</span></div>`}).join('')}
+    window.openCo=function(){closeDrw();if(!cCount())return;refreshCoSummary();const t=cTotal();document.getElementById('coTotal').textContent='฿'+t;document.getElementById('coQRAmt').textContent='฿'+t;document.getElementById('coCashAmt').textContent='฿'+t;renderPPQR(t);slipData='';document.getElementById('coSlipPrev').style.display='none';document.getElementById('coSlipIn').value='';payMethod='qr';setPayMethod('qr');updCoBtn();document.getElementById('coOv').classList.add('open');document.body.style.overflow='hidden'};
     window.closeCo=function(){document.getElementById('coOv').classList.remove('open');document.body.style.overflow=''};
 
     const coSlipIn=document.getElementById('coSlipIn');
@@ -850,45 +817,6 @@
 
     function updCoBtn(){document.getElementById('coSubmit').disabled=!(cCount()&&document.getElementById('coName').value.trim()&&document.getElementById('coClass').value.trim()&&document.getElementById('coRoom').value.trim())}
     ['coName','coClass','coRoom'].forEach(id=>{const el=document.getElementById(id);el.addEventListener('input',updCoBtn);el.addEventListener('change',updCoBtn)});
-
-    // ═══════ CUSTOMER REPLY / RESUBMIT ═══════
-    let replySlipData='',replyQN=null;
-    window.openReply=function(qn){
-      replyQN=qn;replySlipData='';
-      document.getElementById('replySlipPrev').style.display='none';
-      document.getElementById('replySlipIn').value='';
-      document.getElementById('replyMsg').value='';
-      const o=getOrders().find(x=>x.queue_num===qn);
-      document.getElementById('replyOrderInfo').textContent=o?('JFS-'+String(qn).padStart(3,'0')+' \u00b7 \u0e3f'+o.total):'';
-      applyLang();
-      document.getElementById('replyMod').classList.add('open');
-    };
-    window.closeReply=function(){document.getElementById('replyMod').classList.remove('open')};
-    (function(){
-      const inp=document.getElementById('replySlipIn');
-      inp.addEventListener('change',function(e){const f=e.target.files[0];if(!f)return;if(f.size>5e6){toast('Max 5MB');return}const r=new FileReader();r.onload=ev=>{replySlipData=ev.target.result;document.getElementById('replySlipImg').src=replySlipData;document.getElementById('replySlipPrev').style.display='block'};r.readAsDataURL(f)});
-      const drop=document.getElementById('replySlipDrop');
-      drop.addEventListener('dragover',e=>{e.preventDefault();drop.style.borderColor='var(--m)'});
-      drop.addEventListener('dragleave',()=>drop.style.borderColor='');
-      drop.addEventListener('drop',e=>{e.preventDefault();drop.style.borderColor='';const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;inp.dispatchEvent(new Event('change'))}});
-    })();
-    window.submitReply=async function(){
-      const msg=document.getElementById('replyMsg').value.trim();
-      if(!replySlipData&&!msg){toast(t('replyNeedSomething'));return}
-      const orders=getOrders();const idx=orders.findIndex(x=>x.queue_num===replyQN);if(idx<0){closeReply();return}
-      const o=orders[idx];
-      if(replySlipData)o.slip=replySlipData;
-      if(msg)o.customer_message=msg;
-      o.status='pending';o.reported=false;o.reject_reason='';o.resubmitted=true;
-      saveOrders(orders);
-      // Known columns first (this is what actually re-queues the order)
-      pushUpdate(o,{status:'pending',slip_url:o.slip||'',reject_reason:'',reported:false});
-      // customer_message is an optional newer column — push separately so a missing column can't block the resubmit
-      if(useSB&&sb){try{await sb.from('orders').update({customer_message:msg||'',resubmitted:true}).eq('queue_num',replyQN)}catch(e){}}
-      closeReply();renderMyOrders();
-      try{const q=document.getElementById('trackInput').value.trim();if(q)trackOrder()}catch(e){}
-      toast(t('replied'));
-    };
 
     // ═══════ SUBMIT ORDER ═══════
     window.submitOrder=async function(){
@@ -902,7 +830,7 @@
         const order={
           id:oid,queue_num:qn,ts:new Date().toISOString(),
           buyer:{name:document.getElementById('coName').value.trim(),cls:document.getElementById('coClass').value.trim(),room:document.getElementById('coRoom').value.trim(),notes:document.getElementById('coNotes').value.trim()},
-          items:Object.entries(cart).map(([id,q])=>{const p=products.find(x=>x.id===id);return{id:p.id,name:p.name,nameTh:p.nameTh||'',qty:q,price:p.price}}),
+          items:Object.entries(cart).map(([id,q])=>{const p=products.find(x=>x.id===id);return{id:p.id,name:p.name,qty:q,price:p.price}}),
           total:cTotal(),slip:slipData,payment_method:payMethod,status:'pending'
         };
         // Push to Supabase first (gets real queue_num)
@@ -922,12 +850,41 @@
         document.getElementById('tyOv').classList.add('open');
       }catch(e){
         console.error('Order failed:',e);
-        btn.disabled=false;btn.textContent='Place Order';
+        btn.disabled=false;btn.textContent=t('placeOrder');
         toast('Order failed — try again');
       }
     };
     window.closeTy=function(){document.getElementById('tyOv').classList.remove('open')};
-    window.downloadQR=function(){toast('QR code image coming soon')};
+    // ═══════ PROMPTPAY QR (EMVCo standard, generated client-side) ═══════
+    function ppCRC(str){let c=0xFFFF;for(let i=0;i<str.length;i++){c^=str.charCodeAt(i)<<8;for(let j=0;j<8;j++){c=(c&0x8000)?((c<<1)^0x1021):(c<<1);c&=0xFFFF}}return c.toString(16).toUpperCase().padStart(4,'0')}
+    function ppPayload(id,amount){
+      const sani=String(id||'').replace(/[^0-9]/g,'');if(!sani)return'';
+      const tlv=(tag,v)=>tag+String(v.length).padStart(2,'0')+v;
+      const tgt=sani.length>=13?sani:('0000000000000'+sani.replace(/^0/,'66')).slice(-13);
+      const acctTag=sani.length>=15?'03':sani.length>=13?'02':'01';
+      const merchant=tlv('00','A000000677010111')+tlv(acctTag,tgt);
+      let p=tlv('00','01')+tlv('01',amount?'12':'11')+tlv('29',merchant)+tlv('58','TH')+tlv('53','764');
+      if(amount)p+=tlv('54',Number(amount).toFixed(2));
+      p+='6304';return p+ppCRC(p);
+    }
+    let ppDataURL='';
+    function renderPPQR(amount){
+      const box=document.getElementById('ppQRImg');if(!box)return;
+      const configured=PROMPTPAY_ID&&!/[Xx]/.test(PROMPTPAY_ID);
+      if(!configured){box.className='qr-ph';ppDataURL='';
+        box.innerHTML='<svg viewBox=\'0 0 24 24\' style=\'width:34px;height:34px;stroke:var(--m);fill:none;stroke-width:1.2;opacity:.3\'><rect x=\'3\' y=\'3\' width=\'7\' height=\'7\'/><rect x=\'14\' y=\'3\' width=\'7\' height=\'7\'/><rect x=\'3\' y=\'14\' width=\'7\' height=\'7\'/></svg><span style=\'font-size:.55rem;color:#bbb;font-weight:600;max-width:140px;text-align:center;line-height:1.4\'>Add the treasurer\u2019s PromptPay number in the code to show the QR</span>';
+        return;}
+      try{
+        const qr=qrcode(0,'M');qr.addData(ppPayload(PROMPTPAY_ID,amount||0));qr.make();
+        ppDataURL=qr.createDataURL(6,0);
+        box.className='qr-ph filled';
+        box.innerHTML='<img src=\''+ppDataURL+'\' alt=\'PromptPay QR\' style=\'width:158px;height:158px;image-rendering:pixelated\'>';
+      }catch(e){console.warn('QR error',e);box.className='qr-ph';box.innerHTML='<span style=\'font-size:.6rem;color:#bbb\'>QR error</span>';ppDataURL=''}
+    }
+    window.downloadQR=function(){
+      if(!ppDataURL){toast(t('scanNote'));return}
+      const a=document.createElement('a');a.href=ppDataURL;a.download='promptpay-qr-'+cTotal()+'baht.gif';document.body.appendChild(a);a.click();a.remove();
+    };
 
     // ═══════ ORDER TRACKING ═══════
     function progressHTML(status){
@@ -962,16 +919,16 @@
       if(isIssue||isReported){
         const title=status==='rejected'?'Why your order was rejected':status==='deleted'?'Why your order was cancelled':isReported?'Your order has been flagged':'';
         const icon=status==='rejected'?'❌':status==='deleted'?'🗑':isReported?'⚠️':'';
-        issueBox=`<div style="margin-top:.8rem;padding:.8rem;background:rgba(155,34,38,.05);border-radius:10px;border-left:4px solid var(--danger)"><div style="font-size:.75rem;font-weight:700;color:var(--danger);margin-bottom:.4rem">${icon} ${title}</div><div style="font-size:.78rem;color:#555;line-height:1.6;margin-bottom:.5rem">${reason||'No specific reason provided.'}</div><div style="font-size:.72rem;font-weight:600;color:var(--m);margin-bottom:.3rem">What you should do:</div><ul style="font-size:.7rem;color:#666;line-height:1.8;padding-left:1.2rem;margin:0">${status==='rejected'?`<li>Check that you paid the correct amount (฿${total})</li><li>Make sure you uploaded the right payment slip</li>`:''} ${status==='deleted'?'<li>Your order has been cancelled and will not be prepared</li><li>If you already paid, contact us for a refund</li>':''} ${isReported?`<li>There may be an issue with your payment amount</li><li>Please verify your payment matches ฿${total}</li>`:''}<li>Contact us for help: <strong style="color:var(--m)">0XX-XXX-XXXX</strong></li></ul>${(status==='rejected'||isReported)?`<button onclick="openReply(${o.queue_num})" style="margin-top:.6rem;width:100%;padding:.6rem;border-radius:8px;border:none;background:var(--m);color:#fff;font-family:'Inter',sans-serif;font-weight:700;font-size:.74rem;cursor:pointer">${t('fixReorder')}</button>`:''}</div>`;
+        issueBox=`<div style="margin-top:.8rem;padding:.8rem;background:rgba(155,34,38,.05);border-radius:10px;border-left:4px solid var(--danger)"><div style="font-size:.75rem;font-weight:700;color:var(--danger);margin-bottom:.4rem">${icon} ${title}</div><div style="font-size:.78rem;color:#555;line-height:1.6;margin-bottom:.5rem">${reason||'No specific reason provided.'}</div><div style="font-size:.72rem;font-weight:600;color:var(--m);margin-bottom:.3rem">What you should do:</div><ul style="font-size:.7rem;color:#666;line-height:1.8;padding-left:1.2rem;margin:0">${status==='rejected'?`<li>Check that you paid the correct amount (฿${total})</li><li>Make sure you uploaded the right payment slip</li>`:''} ${status==='deleted'?'<li>Your order has been cancelled and will not be prepared</li><li>If you already paid, contact us for a refund</li>':''} ${isReported?`<li>There may be an issue with your payment amount</li><li>Please verify your payment matches ฿${total}</li>`:''}<li>Contact us for help: <strong style="color:var(--m)">${CONTACT_PHONE}</strong></li></ul>${(status==='rejected'||isReported)?`<button onclick="resubmitOrder(${o.queue_num})" style="margin-top:.7rem;width:100%;padding:.6rem;background:var(--m);color:#fff;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-weight:700;font-size:.72rem;cursor:pointer">${t('fixResend')}</button>`:''}</div>`;
       }
-      return`<div class="track-card" style="margin-bottom:1rem">${!isIssue?progressHTML(status):''}<div class="track-status"><div class="track-dot ${status}"></div><div class="track-status-text">${stxt}</div></div>${instr?`<div style="font-size:.72rem;color:#888;line-height:1.5;margin-bottom:.6rem">${instr}</div>`:''}<div class="track-detail" style="font-size:.72rem;color:#999"><strong style="color:var(--ch)">${qid}</strong> · ${name} · Room ${room} · ${payLabel}</div>${issueBox}<div class="track-items" style="margin-top:.6rem">${items.map(i=>`<div class="track-it"><span>${(lang==='th'&&i.nameTh)?i.nameTh:i.name} ×${i.qty}</span><span style="font-weight:600;color:var(--m)">฿${i.price*i.qty}</span></div>`).join('')}<div class="track-total"><span>Total</span><span>฿${total}</span></div></div></div>`;
+      return`<div class="track-card" style="margin-bottom:1rem">${!isIssue?progressHTML(status):''}<div class="track-status"><div class="track-dot ${status}"></div><div class="track-status-text">${stxt}</div></div>${instr?`<div style="font-size:.72rem;color:#888;line-height:1.5;margin-bottom:.6rem">${instr}</div>`:''}<div class="track-detail" style="font-size:.72rem;color:#999"><strong style="color:var(--ch)">${qid}</strong> · ${name} · Room ${room} · ${payLabel}</div>${issueBox}<div class="track-items" style="margin-top:.6rem">${items.map(i=>`<div class="track-it"><span>${i.name} ×${i.qty}</span><span style="font-weight:600;color:var(--m)">฿${i.price*i.qty}</span></div>`).join('')}<div class="track-total"><span>Total</span><span>฿${total}</span></div></div></div>`;
     }
 
     window.trackOrder=function(){
-      const q=document.getElementById('trackInput').value.trim();if(!q){toast('Enter an order number');return}
+      const q=document.getElementById('trackInput').value.trim();if(!q){toast(t('enterNum'));return}
       const num=parseInt(q.replace(/[^0-9]/g,''),10);
       const orders=getOrders();const o=orders.find(x=>x.queue_num===num);
-      document.getElementById('trackResult').innerHTML=o?trackCardHTML(o):'<div class="track-card" style="text-align:center;color:#aaa;padding:2rem">Order not found.</div>';
+      document.getElementById('trackResult').innerHTML=o?trackCardHTML(o):'<div class="track-card" style="text-align:center;color:#aaa;padding:2rem">'+t('orderNotFound')+'</div>';
     };
 
     function renderMyOrders(){
@@ -986,60 +943,6 @@
       let html='<h4 style="font-family:Playfair Display,serif;font-style:italic;font-size:.9rem;color:var(--m);margin-bottom:.6rem">Your Orders</h4>';
       myOrders.slice().reverse().forEach(o=>html+=trackCardHTML(o));
       el.innerHTML=html;
-    }
-
-    // ═══════ DELIVERY RUNNER ═══════
-    const RUNNER_PASS='eis28run';
-    window.runnerDoLogin=function(){
-      if(document.getElementById('runPass').value===RUNNER_PASS){
-        document.getElementById('runLogin').style.display='none';
-        document.getElementById('runDash').style.display='block';
-        runnerLoggedIn=true;sessionStorage.setItem('jfs_runner','true');
-        renderRunner();startPoll();
-      } else toast('Wrong code');
-    };
-    function checkRunnerSession(){
-      if(sessionStorage.getItem('jfs_runner')==='true'){
-        document.getElementById('runLogin').style.display='none';
-        document.getElementById('runDash').style.display='block';
-        runnerLoggedIn=true;renderRunner();startPoll();
-      }
-    }
-    function roomNum(o){const m=String(o.buyer?.room||'').match(/\d+/);return m?parseInt(m[0],10):9999}
-    function runnerCard(o,idx,kind){
-      const items=(o.items||[]).map(i=>`<div style="display:flex;justify-content:space-between;font-size:.82rem;padding:.15rem 0"><span>${i.qty}× ${i.name}</span><span style="color:#999">\u0e3f${i.price*i.qty}</span></div>`).join('');
-      const pay=o.payment_method==='cash'
-        ? `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.2rem .55rem;border-radius:100px;font-size:.66rem;font-weight:800;background:rgba(155,34,38,.1);color:var(--danger)">\ud83d\udcb5 COLLECT \u0e3f${o.total} CASH</span>`
-        : `<span style="display:inline-flex;align-items:center;gap:.25rem;padding:.2rem .55rem;border-radius:100px;font-size:.66rem;font-weight:800;background:rgba(45,106,79,.12);color:var(--success)">\u2713 PAID (QR)</span>`;
-      const e=elapsedStr(o.ts);
-      const btn = kind==='delivering'
-        ? `<button onclick="setSt(${idx},'completed')" style="flex:1;padding:.8rem;border-radius:10px;border:none;background:var(--success);color:#fff;font-weight:800;font-size:.9rem;cursor:pointer">\u2713 Delivered</button><button onclick="setSt(${idx},'cooking')" style="padding:.8rem .9rem;border-radius:10px;border:1.5px solid rgba(0,0,0,.1);background:#fff;color:#888;font-weight:700;font-size:.9rem;cursor:pointer">\u21a9</button>`
-        : `<button onclick="setSt(${idx},'delivering')" style="flex:1;padding:.8rem;border-radius:10px;border:none;background:var(--m);color:#fff;font-weight:800;font-size:.9rem;cursor:pointer">\ud83d\udef5 Pick Up & Go</button>`;
-      const notes=o.buyer?.notes?`<div style="margin-top:.4rem;font-size:.72rem;color:#B8860B;background:rgba(233,196,74,.12);padding:.35rem .55rem;border-radius:6px">\ud83d\udcdd ${o.buyer.notes}</div>`:'';
-      const msg=o.customer_message?`<div style="margin-top:.4rem;font-size:.72rem;color:#1B4D8E;background:rgba(27,77,142,.08);padding:.35rem .55rem;border-radius:6px">\ud83d\udcac ${o.customer_message}</div>`:'';
-      return `<div style="background:#fff;border-radius:14px;padding:1rem;box-shadow:0 2px 10px rgba(0,0,0,.05);border-left:5px solid ${kind==='delivering'?'var(--m)':'#E9C46A'}">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.5rem">
-          <div><div style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.6rem;color:var(--m);line-height:1">\u0e2b\u0e49\u0e2d\u0e07 ${o.buyer?.room||'?'}</div>
-          <div style="font-size:.72rem;color:#999;margin-top:.15rem">${o.buyer?.name||''} \u00b7 ${o.buyer?.cls||''} \u00b7 #${String(o.queue_num).padStart(3,'0')}</div></div>
-          <span style="font-size:.66rem;font-weight:700;color:${e.cls==='urgent'?'var(--danger)':e.cls==='warning'?'#B8860B':'#999'}">${e.txt}</span>
-        </div>
-        <div style="border-top:1px dashed rgba(0,0,0,.08);border-bottom:1px dashed rgba(0,0,0,.08);padding:.5rem 0;margin-bottom:.5rem">${items}</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">${pay}<button onclick="copyForRunner(${idx})" style="padding:.3rem .7rem;border-radius:100px;border:1.5px solid rgba(95,20,49,.15);background:none;color:var(--m);font-weight:700;font-size:.66rem;cursor:pointer">\ud83d\udccb Copy</button></div>
-        ${notes}${msg}
-        <div style="display:flex;gap:.5rem;margin-top:.6rem">${btn}</div>
-      </div>`;
-    }
-    function renderRunner(){
-      const orders=getOrders();
-      const delivering=orders.filter(o=>o.status==='delivering').sort((a,b)=>roomNum(a)-roomNum(b));
-      const cooking=orders.filter(o=>o.status==='cooking').sort((a,b)=>roomNum(a)-roomNum(b));
-      const idxOf=o=>orders.findIndex(x=>x.queue_num===o.queue_num);
-      document.getElementById('runCountDel').textContent=delivering.length;
-      document.getElementById('runCountCook').textContent=cooking.length;
-      const dEl=document.getElementById('runDelivering');
-      const cEl=document.getElementById('runCooking');
-      dEl.innerHTML=delivering.length?delivering.map(o=>runnerCard(o,idxOf(o),'delivering')).join(''):'<div style="text-align:center;color:#bbb;padding:1.2rem;font-size:.8rem">Nothing out for delivery right now.</div>';
-      cEl.innerHTML=cooking.length?cooking.map(o=>runnerCard(o,idxOf(o),'cooking')).join(''):'<div style="text-align:center;color:#bbb;padding:1.2rem;font-size:.8rem">Nothing being cooked right now.</div>';
     }
 
     // ═══════ ADMIN ═══════
@@ -1075,6 +978,15 @@
 
     function renderAdm(){
       const orders=getOrders();
+      // View toggle (Kitchen vs Runner)
+      const isRunner=admView==='runner';
+      const vt=document.getElementById('viewToggleBtn');if(vt){vt.textContent=isRunner?'🍳 Kitchen View':'🛵 Runner View'}
+      const stEl=document.querySelector('.adm-stats');if(stEl)stEl.style.display=isRunner?'none':'';
+      document.getElementById('admTabs').style.display=isRunner?'none':'';
+      document.getElementById('orderFeed').style.display=isRunner?'none':'';
+      document.getElementById('runnerFeed').style.display=isRunner?'block':'none';
+      {const sb2=document.getElementById('shopToggleBtn');if(sb2){const op=isShopOpen();sb2.textContent=op?'🔓 Shop Open':'🔒 Shop Closed';sb2.style.background=op?'var(--success)':'var(--danger)'}}
+      if(isRunner){document.getElementById('admTabTitle').textContent='Delivery Runs';renderRunner(orders);return}
       // Update shop toggle button
       const shopBtn=document.getElementById('shopToggleBtn');
       if(shopBtn){
@@ -1115,8 +1027,6 @@
         const rejReason=o.reject_reason?`<div style="margin-top:.4rem;padding:.4rem .6rem;background:rgba(155,34,38,.05);border-radius:6px;font-size:.6rem;color:var(--danger)">❌ Rejected: ${o.reject_reason}</div>`:'';
         const delReason=o.delete_reason?`<div style="margin-top:.4rem;padding:.4rem .6rem;background:rgba(155,34,38,.05);border-radius:6px;font-size:.6rem;color:var(--danger)">🗑 Deleted: ${o.delete_reason}</div>`:'';
         const reportInfo=o.reported?`<div style="margin-top:.4rem;padding:.4rem .6rem;background:rgba(233,196,74,.1);border-radius:6px;font-size:.6rem;color:var(--warn-tx)">⚠ Reported: ${o.report_reason||'No reason'}</div>`:'';
-        const custMsg=o.customer_message?`<div style="margin-top:.4rem;padding:.45rem .6rem;background:rgba(27,77,142,.07);border-radius:6px;font-size:.64rem;color:#1B4D8E">💬 <strong>Customer reply:</strong> ${o.customer_message}</div>`:'';
-        const resubBadge=o.resubmitted?'<span style="display:inline-block;padding:.1rem .4rem;border-radius:100px;font-size:.5rem;font-weight:700;background:rgba(27,77,142,.12);color:#1B4D8E;margin-left:.3rem">↻ RESUBMITTED</span>':'';
         const dc=e.cls==='urgent'?'var(--danger)':e.cls==='warning'?'#E9C46A':'var(--success)';
 
         let act='';
@@ -1127,7 +1037,7 @@
         if(o.status==='rejected')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'pending')">↩ Undo</button>`;
         if(o.status==='deleted')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'pending')">↩ Restore</button>`;
 
-        return`<div class="of-card ${cc}"><div class="of-top"><div class="of-queue">${qid}</div><div class="of-time"><div class="of-dot ${e.cls==='fresh'?'of-dot-pulse':''}" style="background:${dc}"></div><span class="of-timer ${e.cls}" data-ts="${o.ts}">${e.txt}</span></div></div><div class="of-body"><div class="of-buyer">${name} ${payBadge}${resubBadge}</div><div class="of-meta">${cls} · Room ${room} · ${sl}</div><div class="of-items">${(o.items||[]).map(i=>`<div class="of-it"><span>${i.name} ×${i.qty}</span><span>฿${i.price*i.qty}</span></div>`).join('')}</div><div class="of-total"><span>Total</span><span>฿${o.total}</span></div>${rejReason}${delReason}${reportInfo}${custMsg}${notes?`<div style="margin-top:.5rem;padding:.4rem .6rem;background:rgba(95,20,49,.03);border-radius:6px;font-size:.65rem;color:#666">📝 <strong>Notes:</strong> ${notes}</div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc">Notes: —</div>`}${slip&&slip.startsWith('data:')?`<div style="margin-top:.5rem"><div style="font-size:.55rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aaa;margin-bottom:.3rem">Payment Slip</div><img src="${slip}" style="width:100%;max-height:180px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlip(${idx})"></div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc;font-style:italic">${o.payment_method==='cash'?'Cash payment — collect on delivery':'No slip uploaded'}</div>`}</div><div class="of-foot"><span class="sb ${sc}">${sl}</span><div class="of-actions">${act}<button class="oa" style="background:rgba(233,196,74,.1);color:#B8860B" onclick="reportOrd(${idx})">⚠</button><button class="oa" style="background:rgba(33,150,243,.08);color:#1565C0" onclick="copyForRunner(${idx})">📋</button><button class="oa" style="background:rgba(155,34,38,.06);color:var(--danger)" onclick="deleteOrd(${idx})">🗑</button></div></div></div>`;
+        return`<div class="of-card ${cc}"><div class="of-top"><div class="of-queue">${qid}</div><div class="of-time"><div class="of-dot ${e.cls==='fresh'?'of-dot-pulse':''}" style="background:${dc}"></div><span class="of-timer ${e.cls}" data-ts="${o.ts}">${e.txt}</span></div></div><div class="of-body"><div class="of-buyer">${name} ${payBadge}</div><div class="of-meta">${cls} · Room ${room} · ${sl}</div><div class="of-items">${(o.items||[]).map(i=>`<div class="of-it"><span>${i.name} ×${i.qty}</span><span>฿${i.price*i.qty}</span></div>`).join('')}</div><div class="of-total"><span>Total</span><span>฿${o.total}</span></div>${rejReason}${delReason}${reportInfo}${notes?`<div style="margin-top:.5rem;padding:.4rem .6rem;background:rgba(95,20,49,.03);border-radius:6px;font-size:.65rem;color:#666">📝 <strong>Notes:</strong> ${notes}</div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc">Notes: —</div>`}${slip&&slip.startsWith('data:')?`<div style="margin-top:.5rem"><div style="font-size:.55rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aaa;margin-bottom:.3rem">Payment Slip</div><img src="${slip}" style="width:100%;max-height:180px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlip(${idx})"></div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc;font-style:italic">${o.payment_method==='cash'?'Cash payment — collect on delivery':'No slip uploaded'}</div>`}</div><div class="of-foot"><span class="sb ${sc}">${sl}</span><div class="of-actions">${act}<button class="oa" style="background:rgba(233,196,74,.1);color:#B8860B" onclick="reportOrd(${idx})">⚠</button><button class="oa" style="background:rgba(33,150,243,.08);color:#1565C0" onclick="copyForRunner(${idx})">📋</button><button class="oa" style="background:rgba(155,34,38,.06);color:var(--danger)" onclick="deleteOrd(${idx})">🗑</button></div></div></div>`;
       }).join('');
     }
 
@@ -1146,7 +1056,7 @@
       // If un-rejecting, clear reason
       if(status==='pending'&&orders[idx].status==='rejected'){delete orders[idx].reject_reason}
       orders[idx].status=status;
-      saveOrders(orders);renderAdm();if(runnerLoggedIn)renderRunner();
+      saveOrders(orders);renderAdm();
       toast('Order #'+String(orders[idx]?.queue_num||0).padStart(3,'0')+' → '+status);
       // Push ONLY status to Supabase (minimal — avoids column mismatches)
       pushUpdate(orders[idx],{status}).then(()=>{syncLock=false}).catch(()=>{syncLock=false});
@@ -1187,9 +1097,9 @@
       const items=(o.items||[]).map(i=>i.qty+'x '+i.name).join(', ');
       const pay=o.payment_method==='cash'?'CASH':'QR PAID';
       const txt='Room '+o.buyer?.room+': '+items+' — ฿'+o.total+' '+pay+' ('+o.buyer?.name+')';
-      navigator.clipboard.writeText(txt).then(()=>toast('Copied!')).catch(()=>{
+      navigator.clipboard.writeText(txt).then(()=>toast(t('copied'))).catch(()=>{
         // Fallback for mobile
-        const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Copied!');
+        const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast(t('copied'));
       });
     };
 
@@ -1225,6 +1135,65 @@
       renderAdm();renderGrid();toast('All orders cleared');
     };
 
+    // ═══════ CUSTOMER: FIX & RE-ORDER (rejected/reported) ═══════
+    window.resubmitOrder=function(qnum){
+      const orders=getOrders();const o=orders.find(x=>x.queue_num===qnum);if(!o){toast(t('orderNotFound'));return}
+      cart={};stockMap=getStock();
+      (o.items||[]).forEach(i=>{const stk=stockMap[i.id]??0;const want=Math.min(i.qty,stk);if(want>0)cart[i.id]=want});
+      if(!Object.keys(cart).length){toast(lang==='th'?'สินค้าหมดแล้ว':'Those items are sold out now');return}
+      bump();switchPage('shop');
+      setTimeout(()=>{openCo();
+        document.getElementById('coName').value=o.buyer?.name||'';
+        document.getElementById('coClass').value=o.buyer?.cls||'';
+        document.getElementById('coRoom').value=o.buyer?.room||'';
+        document.getElementById('coNotes').value=o.buyer?.notes||'';
+        updCoBtn();
+      },360);
+    };
+
+    // ═══════ ADMIN: RUNNER (DELIVERY) VIEW ═══════
+    window.toggleAdmView=function(){admView=admView==='kitchen'?'runner':'kitchen';renderAdm()};
+    function renderRunner(orders){
+      const active=orders.filter(o=>o.status==='delivering'||o.status==='cooking');
+      active.sort((a,b)=>{const p={delivering:0,cooking:1};return(p[a.status]-p[b.status])||String(a.buyer?.room||'').localeCompare(String(b.buyer?.room||''),undefined,{numeric:true})||new Date(a.ts)-new Date(b.ts)});
+      const feed=document.getElementById('runnerFeed');
+      if(!active.length){feed.innerHTML='<div class="of-empty">No active deliveries. Orders you mark “Deliver” in the kitchen show up here.</div>';return}
+      feed.innerHTML=active.map(o=>{
+        const idx=orders.findIndex(x=>x.queue_num===o.queue_num);
+        const room=o.buyer?.room||'?';const name=o.buyer?.name||'';
+        const cash=o.payment_method==='cash';
+        const items=(o.items||[]).map(i=>{const prod=products.find(x=>x.id===i.id);return`<div class="rn-it"><span>${i.qty}×</span> ${prod?pname(prod):i.name}</div>`}).join('');
+        const ready=o.status==='delivering';
+        return`<div class="rn-card ${ready?'rn-go':'rn-wait'}"><div class="rn-room"><span>ROOM</span><b>${room}</b></div><div class="rn-mid"><div class="rn-name">${name} · #${String(o.queue_num).padStart(3,'0')}</div><div class="rn-items">${items}</div><div class="rn-pay ${cash?'cash':''}">${cash?'COLLECT ฿'+o.total+' CASH':'PAID ฿'+o.total+' · QR'}</div></div><div class="rn-act">${ready?`<button class="rn-done" onclick="setSt(${idx},'completed')">✓ Delivered</button>`:`<button class="rn-prep" disabled>Cooking…</button>`}</div></div>`;
+      }).join('');
+    }
+
+    // ═══════ ADMIN: IN-BROWSER MENU EDITOR ═══════
+    window.openMenu=function(){menuDraft=JSON.parse(JSON.stringify(products));renderMenuEditor();document.getElementById('menuMod').classList.add('open')};
+    window.closeMenu=function(){document.getElementById('menuMod').classList.remove('open')};
+    function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+    function renderMenuEditor(){
+      document.getElementById('menuList').innerHTML=menuDraft.map((p,i)=>`<div class="me-row"><div class="me-grid"><label>Name (EN)<input value="${esc(p.name)}" oninput="menuDraft[${i}].name=this.value"></label><label>ชื่อ (TH)<input value="${esc(p.name_th)}" oninput="menuDraft[${i}].name_th=this.value"></label><label>Desc (EN)<input value="${esc(p.desc)}" oninput="menuDraft[${i}].desc=this.value"></label><label>รายละเอียด (TH)<input value="${esc(p.desc_th)}" oninput="menuDraft[${i}].desc_th=this.value"></label><label>Category<input value="${esc(p.cat)}" oninput="menuDraft[${i}].cat=this.value"></label><label>Badge<input value="${esc(p.badge)}" oninput="menuDraft[${i}].badge=this.value"></label><label>Price ฿<input type="number" min="0" value="${p.price||0}" oninput="menuDraft[${i}].price=+this.value"></label><label>Stock<input type="number" min="0" value="${p.stock||0}" oninput="menuDraft[${i}].stock=+this.value"></label></div><button class="me-del" onclick="delMenuRow(${i})">✕ Delete</button></div>`).join('');
+    }
+    window.delMenuRow=function(i){menuDraft.splice(i,1);renderMenuEditor()};
+    window.addMenuRow=function(){menuDraft.push({id:'item-'+Date.now().toString(36),cat:'Food',name:'New Item',name_th:'',desc:'',desc_th:'',price:0,badge:'',img:'',stock:0});renderMenuEditor();const list=document.getElementById('menuList');list.scrollTop=list.scrollHeight};
+    window.saveMenu=function(){
+      for(const p of menuDraft){if(!p.name||!p.name.trim()){toast('Every item needs a name');return}}
+      const seen=new Set();
+      menuDraft.forEach(p=>{if(!p.id||seen.has(p.id))p.id='item-'+Math.random().toString(36).slice(2,8);seen.add(p.id);if(!p.cat)p.cat='Food'});
+      saveCatalog(menuDraft);closeMenu();toast('Menu saved ✓');
+    };
+    function saveCatalog(arr){
+      products=arr.map(p=>({id:p.id,cat:p.cat||'Food',name:p.name,name_th:p.name_th||'',desc:p.desc||'',desc_th:p.desc_th||'',price:+p.price||0,badge:p.badge||'',img:p.img||'',stock:+p.stock||0}));
+      localStorage.setItem(CAT_KEY,JSON.stringify(products));
+      const st=getStock();products.forEach(p=>{if(st[p.id]==null)st[p.id]=p.stock});localStorage.setItem(STOCK_KEY,JSON.stringify(st));stockMap=st;
+      if(useSB&&sb){
+        sb.from('catalog').upsert({id:'main',products:products}).then(({error})=>{if(error)console.warn('catalog sync:',error.message)});
+        products.forEach(p=>{sb.from('stock').upsert({product_id:p.id,quantity:st[p.id]}).then(()=>{}).catch(()=>{})});
+      }
+      activeCat='All';renderCats();renderGrid();if(admLoggedIn)renderAdm();
+    }
+
     // Sound
     function playNotif(){try{const c=new(window.AudioContext||window.webkitAudioContext)();const p=(f,s,d)=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(.15,c.currentTime+s);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+s+d);o.start(c.currentTime+s);o.stop(c.currentTime+s+d)};p(880,0,.15);p(1100,.15,.15);p(1320,.3,.2)}catch(e){}}
 
@@ -1238,87 +1207,9 @@
         if(n>prevCount){playNotif();toast('New order!')}
         prevCount=n;
         if(admLoggedIn)renderAdm();
-        if(runnerLoggedIn)renderRunner();
       },3000);
       setInterval(()=>{document.querySelectorAll('.of-timer[data-ts]').forEach(el=>{const e=elapsedStr(el.getAttribute('data-ts'));el.textContent=e.txt;el.className='of-timer '+e.cls})},1000);
     }
-
-    // ═══════ MENU EDITOR (add / edit prices / delete items) ═══════
-    let menuDraft=[];
-    function slug(x){let b=(x||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40);return b||'item-'+Math.random().toString(36).slice(2,7)}
-    window.openMenu=function(){
-      stockMap=getStock();
-      menuDraft=products.map(p=>({...p,stock:(stockMap[p.id]!==undefined?stockMap[p.id]:p.stock)}));
-      renderMenuEditor();
-      document.getElementById('menuMod').classList.add('open');
-    };
-    window.closeMenu=function(){document.getElementById('menuMod').classList.remove('open')};
-    window.addMenuRow=function(){
-      menuDraft.push({id:'',cat:'',name:'',nameTh:'',desc:'',descTh:'',price:0,badge:'',img:'',stock:0});
-      renderMenuEditor();
-      const box=document.getElementById('menuRows');box.scrollTop=box.scrollHeight;
-    };
-    window.delMenuRow=function(i){if(!confirm('Remove this item from the menu?'))return;menuDraft.splice(i,1);renderMenuEditor()};
-    window.mdSet=function(i,field,val){if(menuDraft[i])menuDraft[i][field]=val};
-    function renderMenuEditor(){
-      // category suggestions
-      const cset=[...new Set(products.map(p=>p.cat).concat(menuDraft.map(d=>d.cat)).filter(Boolean))];
-      document.getElementById('catList').innerHTML=cset.map(c=>`<option value="${c}">`).join('');
-      const inp='width:100%;padding:.45rem .55rem;border:1.5px solid rgba(95,20,49,.14);border-radius:7px;font-family:Inter,sans-serif;font-size:.78rem;background:#fff';
-      const lbl='font-size:.58rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#aaa;margin-bottom:.2rem;display:block';
-      document.getElementById('menuRows').innerHTML=menuDraft.map((p,i)=>`
-        <div style="background:#fff;border:1px solid rgba(95,20,49,.1);border-radius:12px;padding:.8rem;margin-bottom:.7rem">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
-            <span style="font-family:'Playfair Display',serif;font-style:italic;font-weight:700;color:var(--m);font-size:.85rem">${p.name||p.nameTh||'New item'}</span>
-            <button onclick="delMenuRow(${i})" style="background:rgba(155,34,38,.08);color:var(--danger);border:none;border-radius:7px;padding:.3rem .55rem;font-size:.8rem;cursor:pointer">🗑</button>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">
-            <div><label style="${lbl}">Name (EN)</label><input style="${inp}" value="${(p.name||'').replace(/"/g,'&quot;')}" oninput="mdSet(${i},'name',this.value)"></div>
-            <div><label style="${lbl}">ชื่อ (TH)</label><input style="${inp}" value="${(p.nameTh||'').replace(/"/g,'&quot;')}" oninput="mdSet(${i},'nameTh',this.value)"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:2fr 1fr;gap:.5rem;margin-bottom:.5rem">
-            <div><label style="${lbl}">Category / Shop</label><input list="catList" style="${inp}" value="${(p.cat||'').replace(/"/g,'&quot;')}" oninput="mdSet(${i},'cat',this.value)"></div>
-            <div><label style="${lbl}">Badge</label><input style="${inp}" placeholder="Popular / Hot…" value="${(p.badge||'').replace(/"/g,'&quot;')}" oninput="mdSet(${i},'badge',this.value)"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">
-            <div><label style="${lbl}">Price (฿)</label><input type="number" min="0" style="${inp}" value="${p.price||0}" oninput="mdSet(${i},'price',this.value)"></div>
-            <div><label style="${lbl}">Stock</label><input type="number" min="0" style="${inp}" value="${p.stock||0}" oninput="mdSet(${i},'stock',this.value)"></div>
-          </div>
-          <details><summary style="font-size:.66rem;color:#999;cursor:pointer;user-select:none">Descriptions (optional)</summary>
-            <div style="margin-top:.4rem"><label style="${lbl}">Description (EN)</label><input style="${inp}" value="${(p.desc||'').replace(/"/g,'&quot;')}" oninput="mdSet(${i},'desc',this.value)"></div>
-            <div style="margin-top:.4rem"><label style="${lbl}">คำอธิบาย (TH)</label><input style="${inp}" value="${(p.descTh||'').replace(/"/g,'&quot;')}" oninput="mdSet(${i},'descTh',this.value)"></div>
-          </details>
-        </div>`).join('');
-    }
-    async function pushCatalog(){
-      if(!useSB||!sb)return;
-      try{
-        const rows=products.map((p,i)=>({product_id:p.id,name:p.name,name_th:p.nameTh||'',category:p.cat,badge:p.badge||'',description:p.desc||'',description_th:p.descTh||'',price:p.price,stock:stockMap[p.id]??p.stock,sort_order:i}));
-        await sb.from('catalog').upsert(rows,{onConflict:'product_id'});
-        const ids=products.map(p=>p.id);
-        if(ids.length)await sb.from('catalog').delete().not('product_id','in','('+ids.join(',')+')');
-      }catch(e){console.warn('pushCatalog (is the catalog table created?)',e)}
-    }
-    window.saveMenu=function(){
-      const cleaned=[];const used=new Set();
-      for(const row of menuDraft){
-        const name=(row.name||'').trim(),nameTh=(row.nameTh||'').trim();
-        if(!name&&!nameTh)continue; // skip blank rows
-        let id=row.id||slug(name||nameTh);
-        while(used.has(id))id=id+'-'+Math.random().toString(36).slice(2,4);
-        used.add(id);
-        cleaned.push({id,cat:(row.cat||'Other').trim()||'Other',name:name||nameTh,nameTh,desc:(row.desc||'').trim(),descTh:(row.descTh||'').trim(),price:Math.max(0,parseInt(row.price,10)||0),badge:(row.badge||'').trim(),img:row.img||'',stock:Math.max(0,parseInt(row.stock,10)||0)});
-      }
-      if(!cleaned.length){toast('Add at least one item');return}
-      products=cleaned;
-      localStorage.setItem(CATALOG_KEY,JSON.stringify(products));
-      // stock shown in the editor is authoritative
-      const ns={};products.forEach(p=>{ns[p.id]=p.stock});stockMap=ns;saveStock();
-      pushCatalog();
-      if(useSB&&sb){products.forEach(p=>{sb.from('stock').upsert({product_id:p.id,quantity:stockMap[p.id]}).catch(()=>{})})}
-      renderCats();renderGrid();if(admLoggedIn)renderAdm();
-      closeMenu();toast('Menu saved ✓');
-    };
 
     // ═══════ NAV ═══════
     window.switchPage=function(pg){
@@ -1331,11 +1222,9 @@
       document.getElementById('cartFab').style.display=pg==='shop'?'flex':'none';
       setTimeout(()=>document.querySelectorAll('.reveal:not(.vis)').forEach(el=>revObs.observe(el)),120);
       if(pg==='admin'){checkAdminSession();if(admLoggedIn)renderAdm()}
-      if(pg==='runner'){checkRunnerSession();if(runnerLoggedIn)renderRunner()}
       if(pg==='track')renderMyOrders();
     };
     if(location.search.includes('admin')||location.hash==='#admin'){switchPage('admin');checkAdminSession()}
-    if(location.search.includes('runner')||location.hash==='#runner'){switchPage('runner');checkRunnerSession()}
 
     const nav=document.getElementById('siteNav');
     addEventListener('scroll',()=>nav.classList.toggle('sc',scrollY>60));
@@ -1346,8 +1235,12 @@
     function toast(msg){const box=document.getElementById('toastBox');const el=document.createElement('div');el.className='t-msg';el.textContent=msg;box.appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},2500)}
 
     // Init
-    stockMap=getStock();renderCats();renderGrid();applyLang();
-    initSupabase().then(()=>{products=loadCatalog();stockMap=getStock();renderCats();renderGrid()});
+    stockMap=getStock();
+    // inject config-driven text
+    {const cp=document.getElementById('contactPhone');if(cp)cp.textContent=CONTACT_PHONE;
+     const pn=document.getElementById('ppName');if(pn)pn.textContent=PROMPTPAY_NAME;}
+    applyLang();
+    initSupabase().then(()=>{stockMap=getStock();renderGrid()});
   })();
   </script>
 </body>
