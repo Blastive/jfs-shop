@@ -59,6 +59,36 @@
     .me-del{margin-top:.5rem;background:rgba(155,34,38,.08);color:var(--danger);border:none;border-radius:6px;padding:.35rem .8rem;font-size:.62rem;font-weight:700;cursor:pointer}
     .me-bar{display:flex;gap:.5rem;margin-top:1rem;position:sticky;bottom:0;background:var(--cream);padding:.5rem 0 0}
     .me-bar button{flex:1;padding:.6rem;border-radius:8px;font-family:'Inter',sans-serif;font-weight:700;font-size:.74rem;cursor:pointer}
+    .me-img{display:flex;gap:.7rem;align-items:center;margin-bottom:.6rem}
+    .me-thumb{width:64px;height:64px;border-radius:8px;background:#efe9e1;flex-shrink:0;display:flex;align-items:center;justify-content:center;overflow:hidden;border:1px solid rgba(95,20,49,.1)}
+    .me-thumb img{width:100%;height:100%;object-fit:cover}
+    .me-thumb span{font-size:.5rem;color:#b3a99c;text-align:center;font-weight:600;line-height:1.2}
+    .me-imgbtns{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;flex:1}
+    .me-up{background:var(--m);color:#fff;border-radius:6px;padding:.42rem .7rem;font-size:.66rem;font-weight:700;cursor:pointer;white-space:nowrap}
+    .me-rmimg{background:rgba(155,34,38,.08);color:var(--danger);border:none;border-radius:6px;padding:.42rem .6rem;font-size:.62rem;font-weight:700;cursor:pointer}
+    .me-url{flex:1;min-width:130px;padding:.4rem .5rem;border:1.5px solid rgba(95,20,49,.14);border-radius:6px;font-family:'Inter',sans-serif;font-size:.7rem;background:#fff}
+    .co-type{display:flex;gap:.4rem;margin-bottom:.7rem}
+    .co-type button{flex:1;padding:.55rem .4rem;border:1.5px solid rgba(95,20,49,.18);background:#fff;border-radius:8px;font-family:'Inter',sans-serif;font-weight:700;font-size:.68rem;color:var(--m);cursor:pointer;line-height:1.25}
+    .co-type button.on{background:var(--m);color:#fff;border-color:var(--m)}
+    .audi-wrap{margin-top:.2rem}
+    .audi-screen{background:linear-gradient(#360b1c,#5F1431);color:#fff;text-align:center;font-size:.6rem;letter-spacing:.25em;font-weight:700;padding:.32rem;border-radius:7px 7px 2px 2px}
+    .audi-screen-sub{text-align:center;font-size:.56rem;color:#a99;margin:.25rem 0 .6rem}
+    .audi-blocks{display:flex;gap:16px;justify-content:center;align-items:flex-start}
+    .audi-col{flex:1;max-width:150px}
+    .audi-blbl{text-align:center;font-size:.55rem;font-weight:700;letter-spacing:.08em;color:var(--m);opacity:.6;margin-bottom:.25rem;text-transform:uppercase}
+    .audi-block{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+    .azone{aspect-ratio:3/4;min-height:40px;border:1.5px solid rgba(95,20,49,.18);border-radius:5px;cursor:pointer;background-color:#faf7f3;background-image:radial-gradient(rgba(95,20,49,.4) 1.4px,transparent 1.5px);background-size:7px 7px;background-position:center;transition:.15s;padding:0}
+    .azone:hover{border-color:var(--m)}
+    .azone.sel{background-color:var(--m);background-image:radial-gradient(rgba(255,255,255,.9) 1.4px,transparent 1.5px);border-color:var(--m);box-shadow:0 3px 10px rgba(95,20,49,.35)}
+    .audi-conf{margin-top:.6rem;text-align:center;font-size:.74rem;font-weight:700;color:var(--m);background:rgba(95,20,49,.06);border-radius:8px;padding:.55rem}
+    .audi-conf.empty{color:#b3a99c;font-weight:600}
+    .rn-audi{flex-shrink:0;width:86px;background:var(--m);color:#fff;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.45rem .3rem;gap:.28rem}
+    .rn-audi>span{font-size:.5rem;letter-spacing:.16em;opacity:.7}
+    .rn-audi small{font-size:.5rem;line-height:1.15;text-align:center;opacity:.95}
+    .mini-audi{display:flex;gap:4px}
+    .mini-audi .ma-block{display:grid;grid-template-columns:repeat(3,3px);gap:1.4px}
+    .mini-audi i{width:3px;height:3px;border-radius:50%;background:rgba(255,255,255,.32)}
+    .mini-audi i.on{background:#F3D27A;box-shadow:0 0 3px #F3D27A}
     .page{display:none}.page.active{display:block}
 
     /* ── HERO ── */
@@ -434,7 +464,9 @@
         </div>
         <div class="co-sec"><h4 data-i18n="yourInfo">Your Information</h4>
           <div class="fg-row"><div class="fg"><label data-i18n="name">Full Name</label><input type="text" id="coName" placeholder="Your name" data-i18n-ph="namePh"></div><div class="fg"><label data-i18n="cls">Class / Section</label><input type="text" id="coClass" placeholder="e.g. 11A" data-i18n-ph="clsPh"></div></div>
-          <div class="fg"><label data-i18n="room">Deliver to Room</label><input type="text" id="coRoom" placeholder="e.g. 301" data-i18n-ph="roomPh"></div>
+          <div class="co-type" id="coTypeSel"><button type="button" data-ct="room" class="on" onclick="setCoType('room')" data-i18n="msTeacher">Middle School / Teacher</button><button type="button" data-ct="audi" onclick="setCoType('audi')" data-i18n="highSchool">High School</button></div>
+          <div class="fg" id="coRoomFg"><label data-i18n="room">Deliver to Room</label><input type="text" id="coRoom" placeholder="e.g. 301" data-i18n-ph="roomPh"></div>
+          <div class="audi-wrap" id="audiPick" style="display:none"><div class="audi-screen" data-i18n="screen">S C R E E N</div><div class="audi-screen-sub" data-i18n="audiHint">Tap the area where you're sitting</div><div class="audi-blocks" id="audiBlocks"></div><div class="audi-conf empty" id="audiConf" data-i18n="pickPrompt">Tap your seat area</div></div>
           <div class="fg"><label data-i18n="notes">Notes (optional)</label><textarea id="coNotes" placeholder="Allergies, special requests, etc." data-i18n-ph="notesPh"></textarea></div>
           <div style="background:rgba(95,20,49,.04);border-radius:8px;padding:.6rem .8rem;display:flex;align-items:center;gap:.5rem;margin-top:.3rem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--m)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
@@ -569,7 +601,7 @@
     }
     let products=loadCatalog();
 
-    let cart={},stockMap={},slipData='',admLoggedIn=false,activeAdmTab='all',activeCat='All',admView='kitchen',menuDraft=[];
+    let cart={},stockMap={},slipData='',admLoggedIn=false,activeAdmTab='all',activeCat='All',admView='kitchen',menuDraft=[],coType='room',coLoc=null,lastTrack=null;
     const ph='<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>';
 
     // ═══════ SUPABASE + LOCAL STORAGE ═══════
@@ -598,7 +630,7 @@
           // Convert Supabase format to local format
           const orders=data.map(r=>({
             id:'JFS-'+String(r.queue_num).padStart(3,'0'),queue_num:r.queue_num,ts:r.created_at,
-            buyer:{name:r.buyer_name,cls:r.buyer_class,room:r.buyer_room,notes:r.buyer_notes||''},
+            buyer:{name:r.buyer_name,cls:r.buyer_class,room:r.buyer_room,notes:r.buyer_notes||'',loc:parseLoc(r.buyer_contact)},
             items:r.items,total:r.total,slip:r.slip_url||'',status:r.status,
             payment_method:r.payment_method||'qr',
             reject_reason:r.reject_reason||'',delete_reason:r.delete_reason||'',
@@ -633,7 +665,7 @@
       try{
         const{data,error}=await sb.from('orders').insert({
           buyer_name:order.buyer.name,buyer_class:order.buyer.cls,
-          buyer_contact:'',buyer_room:order.buyer.room,
+          buyer_contact:order.buyer.loc?JSON.stringify(order.buyer.loc):'',buyer_room:order.buyer.room,
           buyer_notes:order.buyer.notes,items:order.items,
           total:order.total,slip_url:order.slip||'',status:'pending',
           payment_method:order.payment_method||'qr'
@@ -693,7 +725,7 @@
     const T={
       en:{shop:'Shop',track:'Track Order',basket:'Your Basket',items:'items',total:'Total',checkout:'Checkout',
         proceedCheckout:'Proceed to Checkout',placeOrder:'Place Order',placingOrder:'Placing order...',
-        name:'Full Name',cls:'Class / Section',room:'Deliver to Room',notes:'Notes (optional)',
+        name:'Full Name',cls:'Class / Section',room:'Deliver to Room',notes:'Notes (optional)',msTeacher:'Middle School / Teacher',highSchool:'High School',screen:'S C R E E N',audiHint:"Tap the area where you're sitting",pickPrompt:'Tap your seat area',
         payMethod:'Payment Method',qr:'PromptPay QR',cash:'Cash on Delivery',payTo:'Pay to: Class Treasurer',
         scanNote:'Scan with any Thai banking app.',cashNote:'Please have the exact amount ready. Our delivery person will collect payment at your classroom.',
         payWhenDeliver:'Pay When We Deliver',uploadSlip:'Upload Payment Slip',uploadText:'Click to upload or drag & drop',
@@ -709,7 +741,7 @@
         namePh:'Your name',clsPh:'e.g. 11A',roomPh:'e.g. 301',notesPh:'Allergies, special requests, etc.',yourInfo:'Your Information',perEach:'each',remove:'Remove',outStock:'Out of stock',notEnough:'Not enough stock',qrSaveBtn:'Save QR Code',payToLbl:'Pay to:',all:'All',food:'Food',drinks:'Drinks',fixResend:'Fix & Re-order',enterNum:'Enter an order number',copied:'Copied!',scanReady:'Scan to pay'},
       th:{shop:'ร้านค้า',track:'ติดตามออเดอร์',basket:'ตะกร้าของคุณ',items:'รายการ',total:'รวม',checkout:'ชำระเงิน',
         proceedCheckout:'ดำเนินการชำระเงิน',placeOrder:'สั่งซื้อ',placingOrder:'กำลังสั่ง...',
-        name:'ชื่อ-นามสกุล',cls:'ห้อง / ชั้น',room:'ส่งที่ห้อง',notes:'หมายเหตุ (ถ้ามี)',
+        name:'ชื่อ-นามสกุล',cls:'ห้อง / ชั้น',room:'ส่งที่ห้อง',notes:'หมายเหตุ (ถ้ามี)',msTeacher:'มัธยมต้น / ครู',highSchool:'มัธยมปลาย',screen:'จ อ ภ า พ',audiHint:'แตะบริเวณที่คุณนั่ง',pickPrompt:'แตะเลือกโซนที่นั่ง',
         payMethod:'วิธีชำระเงิน',qr:'พร้อมเพย์ QR',cash:'เก็บเงินปลายทาง',payTo:'ชำระให้: เหรัญญิก',
         scanNote:'สแกนด้วยแอปธนาคาร',cashNote:'กรุณาเตรียมเงินให้พอดี ผู้ส่งจะเก็บเงินที่ห้องเรียน',
         payWhenDeliver:'จ่ายตอนรับของ',uploadSlip:'อัปโหลดสลิป',uploadText:'กดเพื่ออัปโหลดหรือลากไฟล์',
@@ -736,7 +768,7 @@
       document.documentElement.lang=lang;
       renderCats();renderGrid();
       if(document.getElementById('drw').classList.contains('open'))renderDrw();
-      if(document.getElementById('coOv').classList.contains('open'))refreshCoSummary();
+      if(document.getElementById('coOv').classList.contains('open')){refreshCoSummary();const ap=document.getElementById('audiPick');if(ap&&ap.style.display!=='none')renderAudiPicker()}
       const tp=document.getElementById('page-track');if(tp&&tp.classList.contains('active'))renderMyOrders();
     }
     window.setLang=function(l){if(l===lang)return;lang=l;localStorage.setItem('jfs_lang',lang);applyLang();toast(lang==='en'?'Switched to English':'เปลี่ยนเป็นภาษาไทย')};
@@ -794,7 +826,7 @@
       const body=document.getElementById('drwBody'),foot=document.getElementById('drwFoot'),entries=Object.entries(cart);
       document.getElementById('drwCount').textContent=entries.length?`· ${cCount()} ${t('items')}`:'';
       if(!entries.length){body.innerHTML=`<div class="drw-empty"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg><p>${t('emptyBasket')}</p><span>${t('addItems')}</span></div>`;foot.style.display='none';return}
-      body.innerHTML=entries.map(([id,q])=>{const p=products.find(x=>x.id===id);return`<div class="drw-item"><div class="di-img"><div class="ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></div></div><div class="di-info"><div class="di-name">${pname(p)}</div><div class="di-price">฿${p.price} ${t('perEach')}</div><div class="di-ctrl"><div class="qty-step"><button class="qty-btn" onclick="chgQty('${id}',-1)">−</button><div class="qty-val">${q}</div><button class="qty-btn" onclick="chgQty('${id}',1)">+</button></div><button class="di-rm" onclick="rmItem('${id}')">${t('remove')}</button></div></div><div style="font-family:'Playfair Display',serif;font-weight:700;color:var(--m)">฿${p.price*q}</div></div>`}).join('');
+      body.innerHTML=entries.map(([id,q])=>{const p=products.find(x=>x.id===id);return`<div class="drw-item"><div class="di-img">${p.img?`<img src="${p.img}">`:`<div class="ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></div>`}</div><div class="di-info"><div class="di-name">${pname(p)}</div><div class="di-price">฿${p.price} ${t('perEach')}</div><div class="di-ctrl"><div class="qty-step"><button class="qty-btn" onclick="chgQty('${id}',-1)">−</button><div class="qty-val">${q}</div><button class="qty-btn" onclick="chgQty('${id}',1)">+</button></div><button class="di-rm" onclick="rmItem('${id}')">${t('remove')}</button></div></div><div style="font-family:'Playfair Display',serif;font-weight:700;color:var(--m)">฿${p.price*q}</div></div>`}).join('');
       foot.style.display='block';document.getElementById('drwTotal').textContent='฿'+cTotal();
     }
     window.rmItem=function(id){delete cart[id];bump();renderGrid();renderDrw()};
@@ -816,7 +848,7 @@
     };
 
     function refreshCoSummary(){document.getElementById('coItems').innerHTML=Object.entries(cart).map(([id,q])=>{const p=products.find(x=>x.id===id);if(!p)return'';return`<div style="display:flex;justify-content:space-between;padding:.3rem 0;font-size:.75rem;border-bottom:1px solid rgba(95,20,49,.04)"><span>${pname(p)} ×${q}</span><span style="font-weight:600;color:var(--m)">฿${p.price*q}</span></div>`}).join('')}
-    window.openCo=function(){closeDrw();if(!cCount())return;refreshCoSummary();const t=cTotal();document.getElementById('coTotal').textContent='฿'+t;document.getElementById('coQRAmt').textContent='฿'+t;document.getElementById('coCashAmt').textContent='฿'+t;renderPPQR(t);slipData='';document.getElementById('coSlipPrev').style.display='none';document.getElementById('coSlipIn').value='';payMethod='qr';setPayMethod('qr');updCoBtn();document.getElementById('coOv').classList.add('open');document.body.style.overflow='hidden'};
+    window.openCo=function(){closeDrw();if(!cCount())return;refreshCoSummary();const t=cTotal();document.getElementById('coTotal').textContent='฿'+t;document.getElementById('coQRAmt').textContent='฿'+t;document.getElementById('coCashAmt').textContent='฿'+t;renderPPQR(t);slipData='';document.getElementById('coSlipPrev').style.display='none';document.getElementById('coSlipIn').value='';payMethod='qr';setPayMethod('qr');updCoBtn();coLoc=null;coType='room';renderAudiPicker();setCoType('room');document.getElementById('coOv').classList.add('open');document.body.style.overflow='hidden'};
     window.closeCo=function(){document.getElementById('coOv').classList.remove('open');document.body.style.overflow=''};
 
     const coSlipIn=document.getElementById('coSlipIn');
@@ -826,8 +858,14 @@
     csd.addEventListener('dragleave',()=>csd.style.borderColor='');
     csd.addEventListener('drop',e=>{e.preventDefault();csd.style.borderColor='';const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const dt=new DataTransfer();dt.items.add(f);coSlipIn.files=dt.files;coSlipIn.dispatchEvent(new Event('change'))}});
 
-    function updCoBtn(){document.getElementById('coSubmit').disabled=!(cCount()&&document.getElementById('coName').value.trim()&&document.getElementById('coClass').value.trim()&&document.getElementById('coRoom').value.trim())}
+    function updCoBtn(){const base=cCount()&&document.getElementById('coName').value.trim()&&document.getElementById('coClass').value.trim();const locOk=coType==='audi'?!!coLoc:document.getElementById('coRoom').value.trim();document.getElementById('coSubmit').disabled=!(base&&locOk)}
     ['coName','coClass','coRoom'].forEach(id=>{const el=document.getElementById(id);el.addEventListener('input',updCoBtn);el.addEventListener('change',updCoBtn)});
+    function parseLoc(s){if(!s)return null;try{const o=JSON.parse(s);return(o&&(o.block==='L'||o.block==='R'))?o:null}catch(e){return null}}
+    function locReadable(loc,lng){if(!loc)return'';const L=lng==='th';const blk=loc.block==='L'?(L?'ฝั่งซ้าย':'Left'):(L?'ฝั่งขวา':'Right');const rows=L?['หน้าสุด','ค่อนหน้า','ค่อนหลัง','หลังสุด']:['Front','Mid-front','Mid-back','Back'];const cols=L?['ซ้าย','กลาง','ขวา']:['Left','Center','Right'];return blk+' · '+(rows[loc.r]||'')+' · '+(cols[loc.c]||'')}
+    function miniAudi(loc){let h='<div class="mini-audi">';['L','R'].forEach(bl=>{h+='<div class="ma-block">';for(let r=0;r<4;r++)for(let c=0;c<3;c++){const on=loc&&loc.block===bl&&loc.r===r&&loc.c===c;h+=`<i class="${on?'on':''}"></i>`}h+='</div>'});return h+'</div>'}
+    function renderAudiPicker(){const wrap=document.getElementById('audiBlocks');if(!wrap)return;const blkName=l=>l==='L'?(lang==='th'?'ฝั่งซ้าย':'Left'):(lang==='th'?'ฝั่งขวา':'Right');let h='';['L','R'].forEach(bl=>{h+=`<div class="audi-col"><div class="audi-blbl">${blkName(bl)}</div><div class="audi-block">`;for(let r=0;r<4;r++)for(let c=0;c<3;c++){const on=coLoc&&coLoc.block===bl&&coLoc.r===r&&coLoc.c===c;h+=`<button type="button" class="azone${on?' sel':''}" onclick="pickZone('${bl}',${r},${c})"></button>`}h+='</div></div>'});wrap.innerHTML=h;const conf=document.getElementById('audiConf');if(conf){if(coLoc){conf.classList.remove('empty');conf.textContent=(lang==='th'?'ที่นั่งของคุณ: ':'Your spot: ')+locReadable(coLoc,lang)}else{conf.classList.add('empty');conf.textContent=t('pickPrompt')}}}
+    window.pickZone=function(bl,r,c){coLoc={block:bl,r:r,c:c};renderAudiPicker();updCoBtn()};
+    window.setCoType=function(type){coType=type;document.querySelectorAll('#coTypeSel button').forEach(b=>b.classList.toggle('on',b.dataset.ct===type));const roomFg=document.getElementById('coRoomFg'),audi=document.getElementById('audiPick');if(roomFg)roomFg.style.display=type==='room'?'':'none';if(audi)audi.style.display=type==='audi'?'':'none';if(type==='audi')renderAudiPicker();updCoBtn()};
 
     // ═══════ SUBMIT ORDER ═══════
     window.submitOrder=async function(){
@@ -840,7 +878,7 @@
         const oid='JFS-'+String(qn).padStart(3,'0');
         const order={
           id:oid,queue_num:qn,ts:new Date().toISOString(),
-          buyer:{name:document.getElementById('coName').value.trim(),cls:document.getElementById('coClass').value.trim(),room:document.getElementById('coRoom').value.trim(),notes:document.getElementById('coNotes').value.trim()},
+          buyer:(()=>{const nm=document.getElementById('coName').value.trim(),cl=document.getElementById('coClass').value.trim(),nt=document.getElementById('coNotes').value.trim();let rm,lc=null;if(coType==='audi'&&coLoc){lc=coLoc;rm='🎭 Auditorium · '+locReadable(coLoc,'en')}else{rm=document.getElementById('coRoom').value.trim()}return{name:nm,cls:cl,room:rm,notes:nt,loc:lc}})(),
           items:Object.entries(cart).map(([id,q])=>{const p=products.find(x=>x.id===id);return{id:p.id,name:p.name,qty:q,price:p.price}}),
           total:cTotal(),slip:slipData,payment_method:payMethod,status:'pending'
         };
@@ -939,6 +977,7 @@
       const q=document.getElementById('trackInput').value.trim();if(!q){toast(t('enterNum'));return}
       const num=parseInt(q.replace(/[^0-9]/g,''),10);
       const orders=getOrders();const o=orders.find(x=>x.queue_num===num);
+      if(o)lastTrack=num;
       document.getElementById('trackResult').innerHTML=o?trackCardHTML(o):'<div class="track-card" style="text-align:center;color:#aaa;padding:2rem">'+t('orderNotFound')+'</div>';
     };
 
@@ -1156,8 +1195,9 @@
       setTimeout(()=>{openCo();
         document.getElementById('coName').value=o.buyer?.name||'';
         document.getElementById('coClass').value=o.buyer?.cls||'';
-        document.getElementById('coRoom').value=o.buyer?.room||'';
         document.getElementById('coNotes').value=o.buyer?.notes||'';
+        if(o.buyer?.loc){coLoc=o.buyer.loc;renderAudiPicker();setCoType('audi')}
+        else{document.getElementById('coRoom').value=o.buyer?.room||'';setCoType('room')}
         updCoBtn();
       },360);
     };
@@ -1171,11 +1211,11 @@
       if(!active.length){feed.innerHTML='<div class="of-empty">No active deliveries. Orders you mark “Deliver” in the kitchen show up here.</div>';return}
       feed.innerHTML=active.map(o=>{
         const idx=orders.findIndex(x=>x.queue_num===o.queue_num);
-        const room=o.buyer?.room||'?';const name=o.buyer?.name||'';
+        const room=o.buyer?.room||'?';const name=o.buyer?.name||'';const loc=o.buyer?.loc;
         const cash=o.payment_method==='cash';
         const items=(o.items||[]).map(i=>{const prod=products.find(x=>x.id===i.id);return`<div class="rn-it"><span>${i.qty}×</span> ${prod?pname(prod):i.name}</div>`}).join('');
         const ready=o.status==='delivering';
-        return`<div class="rn-card ${ready?'rn-go':'rn-wait'}"><div class="rn-room"><span>ROOM</span><b>${room}</b></div><div class="rn-mid"><div class="rn-name">${name} · #${String(o.queue_num).padStart(3,'0')}</div><div class="rn-items">${items}</div><div class="rn-pay ${cash?'cash':''}">${cash?'COLLECT ฿'+o.total+' CASH':'PAID ฿'+o.total+' · QR'}</div></div><div class="rn-act">${ready?`<button class="rn-done" onclick="setSt(${idx},'completed')">✓ Delivered</button>`:`<button class="rn-prep" disabled>Cooking…</button>`}</div></div>`;
+        return`<div class="rn-card ${ready?'rn-go':'rn-wait'}">${loc?`<div class="rn-audi"><span>SEAT</span>${miniAudi(loc)}<small>${locReadable(loc,lang)}</small></div>`:`<div class="rn-room"><span>ROOM</span><b>${room}</b></div>`}<div class="rn-mid"><div class="rn-name">${name} · #${String(o.queue_num).padStart(3,'0')}</div><div class="rn-items">${items}</div><div class="rn-pay ${cash?'cash':''}">${cash?'COLLECT ฿'+o.total+' CASH':'PAID ฿'+o.total+' · QR'}</div></div><div class="rn-act">${ready?`<button class="rn-done" onclick="setSt(${idx},'completed')">✓ Delivered</button>`:`<button class="rn-prep" disabled>Cooking…</button>`}</div></div>`;
       }).join('');
     }
 
@@ -1184,9 +1224,13 @@
     window.closeMenu=function(){document.getElementById('menuMod').classList.remove('open')};
     function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
     function renderMenuEditor(){
-      document.getElementById('menuList').innerHTML=menuDraft.map((p,i)=>`<div class="me-row"><div class="me-grid"><label>Name (EN)<input value="${esc(p.name)}" oninput="mEdit(${i},'name',this.value)"></label><label>ชื่อ (TH)<input value="${esc(p.name_th)}" oninput="mEdit(${i},'name_th',this.value)"></label><label>Desc (EN)<input value="${esc(p.desc)}" oninput="mEdit(${i},'desc',this.value)"></label><label>รายละเอียด (TH)<input value="${esc(p.desc_th)}" oninput="mEdit(${i},'desc_th',this.value)"></label><label>Shop<input value="${esc(p.cat)}" oninput="mEdit(${i},'cat',this.value)"></label><label>Group (Food/Drinks)<input value="${esc(p.group)}" oninput="mEdit(${i},'group',this.value)"></label><label>Badge<input value="${esc(p.badge)}" oninput="mEdit(${i},'badge',this.value)"></label><label>Price ฿<input type="number" min="0" value="${p.price||0}" oninput="mEdit(${i},'price',+this.value)"></label><label>Stock<input type="number" min="0" value="${p.stock||0}" oninput="mEdit(${i},'stock',+this.value)"></label></div><button class="me-del" onclick="delMenuRow(${i})">✕ Delete</button></div>`).join('');
+      document.getElementById('menuList').innerHTML=menuDraft.map((p,i)=>`<div class="me-row"><div class="me-img"><div class="me-thumb">${p.img?`<img src="${esc(p.img)}">`:'<span>No<br>photo</span>'}</div><div class="me-imgbtns"><label class="me-up">⬆ Upload photo<input type="file" accept="image/*" onchange="mPick(${i},this)" hidden></label>${p.img?`<button type="button" class="me-rmimg" onclick="mClearImg(${i})">Remove</button>`:''}<input class="me-url" placeholder="…or paste an image URL" value="${esc(p.img&&/^https?:/.test(p.img)?p.img:'')}" onchange="mUrl(${i},this.value)"></div></div><div class="me-grid"><label>Name (EN)<input value="${esc(p.name)}" oninput="mEdit(${i},'name',this.value)"></label><label>ชื่อ (TH)<input value="${esc(p.name_th)}" oninput="mEdit(${i},'name_th',this.value)"></label><label>Desc (EN)<input value="${esc(p.desc)}" oninput="mEdit(${i},'desc',this.value)"></label><label>รายละเอียด (TH)<input value="${esc(p.desc_th)}" oninput="mEdit(${i},'desc_th',this.value)"></label><label>Shop<input value="${esc(p.cat)}" oninput="mEdit(${i},'cat',this.value)"></label><label>Group (Food/Drinks)<input value="${esc(p.group)}" oninput="mEdit(${i},'group',this.value)"></label><label>Badge<input value="${esc(p.badge)}" oninput="mEdit(${i},'badge',this.value)"></label><label>Price ฿<input type="number" min="0" value="${p.price||0}" oninput="mEdit(${i},'price',+this.value)"></label><label>Stock<input type="number" min="0" value="${p.stock||0}" oninput="mEdit(${i},'stock',+this.value)"></label></div><button class="me-del" onclick="delMenuRow(${i})">✕ Delete</button></div>`).join('');
     }
     window.mEdit=function(i,k,v){if(menuDraft[i])menuDraft[i][k]=v};
+    function compressImg(file,cb){const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{let w=img.width,h=img.height;const max=480;if(w>h&&w>max){h=Math.round(h*max/w);w=max}else if(h>=w&&h>max){w=Math.round(w*max/h);h=max}try{const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',0.72))}catch(err){cb(e.target.result)}};img.onerror=()=>toast('Could not read that image');img.src=e.target.result};r.readAsDataURL(file)}
+    window.mPick=function(i,inp){const f=inp.files&&inp.files[0];if(!f)return;if(!f.type.startsWith('image/')){toast('Please choose an image');return}if(f.size>8e6){toast('Image too big (max 8MB)');return}compressImg(f,d=>{if(menuDraft[i]){menuDraft[i].img=d;renderMenuEditor()}})};
+    window.mClearImg=function(i){if(menuDraft[i]){menuDraft[i].img='';renderMenuEditor()}};
+    window.mUrl=function(i,v){if(menuDraft[i]){menuDraft[i].img=(v||'').trim();renderMenuEditor()}};
     window.delMenuRow=function(i){menuDraft.splice(i,1);renderMenuEditor()};
     window.addMenuRow=function(){menuDraft.push({id:'item-'+Date.now().toString(36),cat:'Snacks',group:'Food',name:'New Item',name_th:'',desc:'',desc_th:'',price:0,badge:'',img:'',stock:0});renderMenuEditor();const list=document.getElementById('menuList');list.scrollTop=list.scrollHeight};
     window.saveMenu=async function(){
@@ -1261,6 +1305,15 @@
      const pn=document.getElementById('ppName');if(pn)pn.textContent=PROMPTPAY_NAME;}
     applyLang();
     initSupabase().then(()=>{stockMap=getStock();renderGrid()});
+    // Live updates for customers (track + shop) without manual refresh
+    setInterval(async()=>{
+      const tp=document.getElementById('page-track'),sp=document.getElementById('page-shop');
+      const onTrack=tp&&tp.classList.contains('active'),onShop=sp&&sp.classList.contains('active');
+      if(!onTrack&&!onShop)return;
+      if(useSB){try{await syncFromSupabase()}catch(e){}}
+      if(onTrack){renderMyOrders();if(lastTrack!=null){const o=getOrders().find(x=>x.queue_num===lastTrack);if(o)document.getElementById('trackResult').innerHTML=trackCardHTML(o)}}
+      else if(onShop&&!document.getElementById('coOv').classList.contains('open')){renderGrid()}
+    },6000);
   })();
   </script>
 </body>
