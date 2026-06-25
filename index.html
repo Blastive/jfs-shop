@@ -62,8 +62,9 @@
     .page{display:none}.page.active{display:block}
 
     /* ── HERO ── */
-    .proj-hero{background:var(--m);padding:6rem 1.5rem 3rem;text-align:center;color:#fff;position:relative;overflow:hidden;min-height:300px;display:flex;align-items:center;justify-content:center}
-    .proj-hero-bg{position:absolute;inset:0;background:url('cinema-line.png') center 45%/cover no-repeat;filter:invert(1);opacity:.07;pointer-events:none}
+    .proj-hero{background:radial-gradient(ellipse 72% 85% at 50% 26%,rgba(255,255,255,.10),transparent 62%),linear-gradient(158deg,#6f1839 0%,#5F1431 50%,#460f24 100%);padding:6rem 1.5rem 3rem;text-align:center;color:#fff;position:relative;overflow:hidden;min-height:300px;display:flex;align-items:center;justify-content:center}
+    .proj-hero-bg{position:absolute;inset:0;pointer-events:none;opacity:.45;background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='34'%3E%3Crect%20x='8'%20y='7'%20width='10'%20height='20'%20rx='2'%20fill='%23fff'/%3E%3C/svg%3E"),url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='34'%3E%3Crect%20x='8'%20y='7'%20width='10'%20height='20'%20rx='2'%20fill='%23fff'/%3E%3C/svg%3E");background-repeat:repeat-y,repeat-y;background-position:left center,right center;background-size:26px 34px,26px 34px}
+    .proj-hero::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 42%,transparent 60%,rgba(0,0,0,.28) 100%)}
     .proj-inner{position:relative;z-index:2;max-width:600px}
     .proj-hero .pbe{font-size:.58rem;font-weight:600;letter-spacing:.35em;text-transform:uppercase;opacity:.45;margin-bottom:.7rem}
     .proj-hero h1{font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(2.2rem,7vw,4rem);font-weight:900;margin-bottom:.5rem}
@@ -559,9 +560,12 @@
     ];
     // Catalog = editable product list. Loaded from localStorage cache, synced via Supabase 'catalog' table.
     const CAT_KEY='jfs_products';
+    let catalogTS=0;
     function loadCatalog(){
-      try{const raw=localStorage.getItem(CAT_KEY);if(raw){const a=JSON.parse(raw);if(Array.isArray(a)&&a.length)return a}}catch(e){}
-      return JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+      try{const raw=localStorage.getItem(CAT_KEY);if(raw){const d=JSON.parse(raw);
+        if(Array.isArray(d)&&d.length){catalogTS=0;return d}
+        if(d&&Array.isArray(d.products)&&d.products.length){catalogTS=+d.ts||0;return d.products}}}catch(e){}
+      catalogTS=0;return JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
     }
     let products=loadCatalog();
 
@@ -614,8 +618,11 @@
           localStorage.setItem(STOCK_KEY,JSON.stringify(s));
         }
         // Sync catalog (menu edits) — gracefully ignored if table doesn't exist
-        try{const{data:cat}=await sb.from('catalog').select('products').eq('id','main').limit(1);
-          if(cat&&cat[0]&&Array.isArray(cat[0].products)&&cat[0].products.length){products=cat[0].products;localStorage.setItem(CAT_KEY,JSON.stringify(products))}
+        try{const{data:cat}=await sb.from('catalog').select('*').eq('id','main').limit(1);
+          if(cat&&cat[0]&&Array.isArray(cat[0].products)&&cat[0].products.length){
+            const remoteTS=cat[0].updated_at?(Date.parse(cat[0].updated_at)||1):1;
+            if(remoteTS>catalogTS){products=cat[0].products;catalogTS=remoteTS;localStorage.setItem(CAT_KEY,JSON.stringify({ts:catalogTS,products}));if(typeof renderCats==='function'){renderCats();renderGrid()}}
+          }
         }catch(e){}
       }catch(e){console.warn('Sync failed:',e)}
     }
@@ -1181,21 +1188,29 @@
     }
     window.delMenuRow=function(i){menuDraft.splice(i,1);renderMenuEditor()};
     window.addMenuRow=function(){menuDraft.push({id:'item-'+Date.now().toString(36),cat:'Snacks',group:'Food',name:'New Item',name_th:'',desc:'',desc_th:'',price:0,badge:'',img:'',stock:0});renderMenuEditor();const list=document.getElementById('menuList');list.scrollTop=list.scrollHeight};
-    window.saveMenu=function(){
+    window.saveMenu=async function(){
       for(const p of menuDraft){if(!p.name||!p.name.trim()){toast('Every item needs a name');return}}
       const seen=new Set();
-      menuDraft.forEach(p=>{if(!p.id||seen.has(p.id))p.id='item-'+Math.random().toString(36).slice(2,8);seen.add(p.id);if(!p.cat)p.cat='Food'});
-      saveCatalog(menuDraft);closeMenu();toast('Menu saved ✓');
+      menuDraft.forEach(p=>{if(!p.id||seen.has(p.id))p.id='item-'+Math.random().toString(36).slice(2,8);seen.add(p.id);if(!p.cat)p.cat='Other'});
+      const res=await saveCatalog(menuDraft);closeMenu();
+      toast(res==='cloud'?'Menu saved & synced ✓':res==='local'?'Menu saved on this device ✓':'Saved here — cloud sync failed; run the catalog SQL');
     };
-    function saveCatalog(arr){
+    async function saveCatalog(arr){
       products=arr.map(p=>({id:p.id,cat:p.cat||'Other',group:(p.group==='Drinks'?'Drinks':'Food'),name:p.name,name_th:p.name_th||'',desc:p.desc||'',desc_th:p.desc_th||'',price:+p.price||0,badge:p.badge||'',img:p.img||'',stock:+p.stock||0}));
-      localStorage.setItem(CAT_KEY,JSON.stringify(products));
+      catalogTS=Date.now();
+      localStorage.setItem(CAT_KEY,JSON.stringify({ts:catalogTS,products}));
       const st=getStock();products.forEach(p=>{if(st[p.id]==null)st[p.id]=p.stock});localStorage.setItem(STOCK_KEY,JSON.stringify(st));stockMap=st;
-      if(useSB&&sb){
-        sb.from('catalog').upsert({id:'main',products:products}).then(({error})=>{if(error)console.warn('catalog sync:',error.message)});
-        products.forEach(p=>{sb.from('stock').upsert({product_id:p.id,quantity:st[p.id]}).then(()=>{}).catch(()=>{})});
-      }
       activeCat='All';renderCats();renderGrid();if(admLoggedIn)renderAdm();
+      let cloud='local';
+      if(useSB&&sb){
+        try{
+          const{error}=await sb.from('catalog').upsert({id:'main',products:products,updated_at:new Date(catalogTS).toISOString()});
+          if(error)throw error;
+          products.forEach(p=>{sb.from('stock').upsert({product_id:p.id,quantity:st[p.id]}).then(()=>{}).catch(()=>{})});
+          cloud='cloud';
+        }catch(e){console.warn('catalog sync failed:',e.message||e);cloud='fail'}
+      }
+      return cloud;
     }
 
     // Sound
