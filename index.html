@@ -90,6 +90,19 @@
     .sr-bar{height:6px;border-radius:3px;background:rgba(95,20,49,.08);overflow:hidden;margin-top:.15rem}
     .sr-fill{height:100%;border-radius:3px;background:var(--m)}
     @media(max-width:480px){.sr-grid{grid-template-columns:1fr}}
+    .resub-box{margin-top:.7rem;padding:.7rem;background:rgba(95,20,49,.03);border-radius:10px;border:1.5px dashed rgba(95,20,49,.15)}
+    .resub-btn{display:inline-flex;align-items:center;gap:.4rem;background:var(--m);color:#fff;border-radius:8px;padding:.55rem .9rem;font-family:'Inter','Noto Sans Thai',sans-serif;font-weight:700;font-size:.72rem;cursor:pointer}
+    .resub-hint{font-size:.6rem;color:#999;margin-top:.35rem;line-height:1.4}
+    .slip-stack{margin-top:.5rem}
+    .slip-entry{margin-bottom:.6rem;position:relative}
+    .slip-label{font-size:.55rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:.25rem;display:flex;align-items:center;gap:.4rem}
+    .slip-label.original{color:#aaa}
+    .slip-label.reply{color:var(--success)}
+    .slip-label .slip-tag{display:inline-block;padding:.12rem .4rem;border-radius:100px;font-size:.5rem;font-weight:800}
+    .slip-label.original .slip-tag{background:rgba(0,0,0,.05);color:#aaa}
+    .slip-label.reply .slip-tag{background:rgba(45,106,79,.12);color:var(--success)}
+    .slip-ts{font-size:.5rem;color:#bbb;font-weight:400;text-transform:none;letter-spacing:0}
+    .resub-badge{display:inline-block;background:rgba(45,106,79,.12);color:var(--success);font-size:.5rem;font-weight:800;padding:.15rem .45rem;border-radius:100px;letter-spacing:.04em;margin-left:.4rem;vertical-align:middle}
     .audi-wrap{margin-top:.2rem}
     .audi-screen{background:linear-gradient(#360b1c,#5F1431);color:#fff;text-align:center;font-size:.6rem;letter-spacing:.25em;font-weight:700;padding:.32rem;border-radius:7px 7px 2px 2px}
     .audi-screen-sub{text-align:center;font-size:.56rem;color:#a99;margin:.25rem 0 .6rem}
@@ -675,7 +688,7 @@
           const orders=data.map(r=>({
             id:'JFS-'+String(r.queue_num).padStart(3,'0'),queue_num:r.queue_num,ts:r.created_at,
             buyer:{name:r.buyer_name,cls:r.buyer_class,room:r.buyer_room,notes:r.buyer_notes||'',loc:parseLoc(r.buyer_contact)},
-            items:r.items,total:r.total,slip:r.slip_url||'',status:r.status,
+            items:r.items,total:r.total,slip:r.slip_url||'',slips:(()=>{try{const p=JSON.parse(r.slip_url);if(Array.isArray(p))return p}catch(e){}return[]})(),resubmitted:(()=>{try{const p=JSON.parse(r.slip_url);return Array.isArray(p)&&p.length>1}catch(e){return false}})(),status:r.status,
             payment_method:r.payment_method||'qr',
             reject_reason:r.reject_reason||'',delete_reason:r.delete_reason||'',
             report_reason:r.report_reason||'',reported:!!r.reported,
@@ -712,7 +725,7 @@
           buyer_name:order.buyer.name,buyer_class:order.buyer.cls,
           buyer_contact:order.buyer.loc?JSON.stringify(order.buyer.loc):'',buyer_room:order.buyer.room,
           buyer_notes:order.buyer.notes,items:order.items,
-          total:order.total,slip_url:order.slip||'',status:'pending',
+          total:order.total,slip_url:order.slips&&order.slips.length?JSON.stringify(order.slips):(order.slip||''),status:'pending',
           payment_method:order.payment_method||'qr'
         }).select().single();
         if(error){console.error('❌ Insert failed:',error.message,error.details);return}
@@ -926,7 +939,7 @@
           id:oid,queue_num:qn,ts:new Date().toISOString(),
           buyer:(()=>{const nm=document.getElementById('coName').value.trim(),cl=document.getElementById('coClass').value.trim(),nt=document.getElementById('coNotes').value.trim();let rm,lc=null;if(coType==='audi'&&coLoc){lc=coLoc;rm='🎭 Auditorium · '+locReadable(coLoc,'en')}else{rm=document.getElementById('coRoom').value.trim()}return{name:nm,cls:cl,room:rm,notes:nt,loc:lc}})(),
           items:Object.entries(cart).map(([id,q])=>{const p=products.find(x=>x.id===id);return{id:p.id,name:p.name,qty:q,price:p.price}}),
-          total:cTotal(),slip:slipData,payment_method:payMethod,status:'pending'
+          total:cTotal(),slip:slipData,slips:slipData?[{data:slipData,ts:new Date().toISOString(),label:'Original'}]:[],payment_method:payMethod,status:'pending'
         };
         // Push to Supabase first (gets real queue_num)
         await pushNewOrder(order);
@@ -1014,9 +1027,9 @@
       if(isIssue||isReported){
         const title=status==='rejected'?'Why your order was rejected':status==='deleted'?'Why your order was cancelled':isReported?'Your order has been flagged':'';
         const icon=status==='rejected'?'❌':status==='deleted'?'🗑':isReported?'⚠️':'';
-        issueBox=`<div style="margin-top:.8rem;padding:.8rem;background:rgba(155,34,38,.05);border-radius:10px;border-left:4px solid var(--danger)"><div style="font-size:.75rem;font-weight:700;color:var(--danger);margin-bottom:.4rem">${icon} ${title}</div><div style="font-size:.78rem;color:#555;line-height:1.6;margin-bottom:.5rem">${reason||'No specific reason provided.'}</div><div style="font-size:.72rem;font-weight:600;color:var(--m);margin-bottom:.3rem">What you should do:</div><ul style="font-size:.7rem;color:#666;line-height:1.8;padding-left:1.2rem;margin:0">${status==='rejected'?`<li>Check that you paid the correct amount (฿${total})</li><li>Make sure you uploaded the right payment slip</li>`:''} ${status==='deleted'?'<li>Your order has been cancelled and will not be prepared</li><li>If you already paid, contact us for a refund</li>':''} ${isReported?`<li>There may be an issue with your payment amount</li><li>Please verify your payment matches ฿${total}</li>`:''}<li>Contact us for help: <strong style="color:var(--m)">${CONTACT_PHONE}</strong></li></ul>${(status==='rejected'||isReported)?`<button onclick="resubmitOrder(${o.queue_num})" style="margin-top:.7rem;width:100%;padding:.6rem;background:var(--m);color:#fff;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-weight:700;font-size:.72rem;cursor:pointer">${t('fixResend')}</button>`:''}</div>`;
+        issueBox=`<div style="margin-top:.8rem;padding:.8rem;background:rgba(155,34,38,.05);border-radius:10px;border-left:4px solid var(--danger)"><div style="font-size:.75rem;font-weight:700;color:var(--danger);margin-bottom:.4rem">${icon} ${title}</div><div style="font-size:.78rem;color:#555;line-height:1.6;margin-bottom:.5rem">${reason||'No specific reason provided.'}</div><div style="font-size:.72rem;font-weight:600;color:var(--m);margin-bottom:.3rem">What you should do:</div><ul style="font-size:.7rem;color:#666;line-height:1.8;padding-left:1.2rem;margin:0">${status==='rejected'?`<li>Check that you paid the correct amount (฿${total})</li><li>Make sure you uploaded the right payment slip</li>`:''} ${status==='deleted'?'<li>Your order has been cancelled and will not be prepared</li><li>If you already paid, contact us for a refund</li>':''} ${isReported?`<li>There may be an issue with your payment amount</li><li>Please verify your payment matches ฿${total}</li>`:''}<li>Contact us for help: <strong style="color:var(--m)">${CONTACT_PHONE}</strong></li></ul>${(status==='rejected'||isReported)?`<div class="resub-box"><label class="resub-btn">📎 ${t('fixResend')}<input type="file" accept="image/*" onchange="handleResub(${o.queue_num},this)" hidden></label><div class="resub-hint">${lang==='th'?'อัปโหลดสลิปใหม่เพื่อส่งออเดอร์กลับเข้าคิว':'Upload a new payment slip to put your order back in the queue'}</div></div>`:''}</div>`;
       }
-      return`<div class="track-card" style="margin-bottom:1rem">${!isIssue?progressHTML(status):''}<div class="track-status"><div class="track-dot ${status}"></div><div class="track-status-text">${stxt}</div></div>${instr?`<div style="font-size:.72rem;color:#888;line-height:1.5;margin-bottom:.6rem">${instr}</div>`:''}<div class="track-detail" style="font-size:.72rem;color:#999"><strong style="color:var(--ch)">${qid}</strong> · ${name} · Room ${room} · ${payLabel}</div>${issueBox}<div class="track-items" style="margin-top:.6rem">${items.map(i=>`<div class="track-it"><span>${i.name} ×${i.qty}</span><span style="font-weight:600;color:var(--m)">฿${i.price*i.qty}</span></div>`).join('')}<div class="track-total"><span>Total</span><span>฿${total}</span></div></div></div>`;
+      return`<div class="track-card" style="margin-bottom:1rem">${!isIssue?progressHTML(status):''}<div class="track-status"><div class="track-dot ${status}"></div><div class="track-status-text">${stxt}</div></div>${instr?`<div style="font-size:.72rem;color:#888;line-height:1.5;margin-bottom:.6rem">${instr}</div>`:''}<div class="track-detail" style="font-size:.72rem;color:#999"><strong style="color:var(--ch)">${qid}</strong> · ${name} · Room ${room} · ${payLabel}</div>${issueBox}<div class="track-items" style="margin-top:.6rem">${items.map(i=>`<div class="track-it"><span>${i.name} ×${i.qty}</span><span style="font-weight:600;color:var(--m)">฿${i.price*i.qty}</span></div>`).join('')}<div class="track-total"><span>Total</span><span>฿${total}</span></div></div>${(()=>{const ss=getSlips(o);return ss.length?renderSlipStack(ss,-1):''})()}${o.resubmitted?'<div style="text-align:center;margin-top:.3rem"><span class="resub-badge">🔄 Resubmitted</span></div>':''}</div>`;
     }
 
     window.trackOrder=function(){
@@ -1229,7 +1242,7 @@
         if(o.status==='rejected')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'pending')">↩ Undo</button>`;
         if(o.status==='deleted')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'pending')">↩ Restore</button>`;
 
-        return`<div class="of-card ${cc}"><div class="of-top"><div class="of-queue">${qid}</div><div class="of-time"><div class="of-dot ${e.cls==='fresh'?'of-dot-pulse':''}" style="background:${dc}"></div><span class="of-timer ${e.cls}" data-ts="${o.ts}">${e.txt}</span></div></div><div class="of-body"><div class="of-buyer">${name} ${payBadge}</div><div class="of-meta">${cls} · Room ${room} · ${sl}</div><div class="of-items">${(o.items||[]).map(i=>`<div class="of-it"><span>${i.name} ×${i.qty}</span><span>฿${i.price*i.qty}</span></div>`).join('')}</div><div class="of-total"><span>Total</span><span>฿${o.total}</span></div>${rejReason}${delReason}${reportInfo}${notes?`<div style="margin-top:.5rem;padding:.4rem .6rem;background:rgba(95,20,49,.03);border-radius:6px;font-size:.65rem;color:#666">📝 <strong>Notes:</strong> ${notes}</div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc">Notes: —</div>`}${slip&&slip.startsWith('data:')?`<div style="margin-top:.5rem"><div style="font-size:.55rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#aaa;margin-bottom:.3rem">Payment Slip</div><img src="${slip}" style="width:100%;max-height:180px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlip(${idx})"></div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc;font-style:italic">${o.payment_method==='cash'?'Cash payment — collect on delivery':'No slip uploaded'}</div>`}</div><div class="of-foot"><span class="sb ${sc}">${sl}</span><div class="of-actions">${act}<button class="oa" style="background:rgba(233,196,74,.1);color:#B8860B" onclick="reportOrd(${idx})">⚠</button><button class="oa" style="background:rgba(33,150,243,.08);color:#1565C0" onclick="copyForRunner(${idx})">📋</button><button class="oa" style="background:rgba(155,34,38,.06);color:var(--danger)" onclick="deleteOrd(${idx})">🗑</button></div></div></div>`;
+        return`<div class="of-card ${cc}"><div class="of-top"><div class="of-queue">${qid}</div><div class="of-time"><div class="of-dot ${e.cls==='fresh'?'of-dot-pulse':''}" style="background:${dc}"></div><span class="of-timer ${e.cls}" data-ts="${o.ts}">${e.txt}</span></div></div><div class="of-body"><div class="of-buyer">${name} ${payBadge}</div><div class="of-meta">${cls} · Room ${room} · ${sl}</div><div class="of-items">${(o.items||[]).map(i=>`<div class="of-it"><span>${i.name} ×${i.qty}</span><span>฿${i.price*i.qty}</span></div>`).join('')}</div><div class="of-total"><span>Total</span><span>฿${o.total}</span></div>${rejReason}${delReason}${reportInfo}${notes?`<div style="margin-top:.5rem;padding:.4rem .6rem;background:rgba(95,20,49,.03);border-radius:6px;font-size:.65rem;color:#666">📝 <strong>Notes:</strong> ${notes}</div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc">Notes: —</div>`}${(()=>{const ss=getSlips(o);if(ss.length)return renderSlipStack(ss,idx)+(o.resubmitted?'<div style="margin-top:.3rem"><span class="resub-badge">🔄 Resubmitted</span></div>':'');return o.payment_method==='cash'?'<div style="margin-top:.4rem;font-size:.6rem;color:#ccc;font-style:italic">Cash payment — collect on delivery</div>':'<div style="margin-top:.4rem;font-size:.6rem;color:#ccc;font-style:italic">No slip uploaded</div>'})()}</div><div class="of-foot"><span class="sb ${sc}">${sl}</span><div class="of-actions">${act}<button class="oa" style="background:rgba(233,196,74,.1);color:#B8860B" onclick="reportOrd(${idx})">⚠</button><button class="oa" style="background:rgba(33,150,243,.08);color:#1565C0" onclick="copyForRunner(${idx})">📋</button><button class="oa" style="background:rgba(155,34,38,.06);color:var(--danger)" onclick="deleteOrd(${idx})">🗑</button></div></div></div>`;
       }).join('');
     }
 
@@ -1296,6 +1309,7 @@
     };
 
     window.showSlip=function(idx){
+      if(typeof idx==='string'&&idx.startsWith('data:')){document.getElementById('mSlipImg').src=idx;document.getElementById('slipMod').classList.add('open');return}
       const orders=getOrders();const o=orders[idx];if(!o)return;
       const slip=o.slip||'';
       if(!slip){toast('No slip');return}
@@ -1328,6 +1342,48 @@
     };
 
     // ═══════ CUSTOMER: FIX & RE-ORDER (rejected/reported) ═══════
+    // ═══════ SLIP HISTORY ═══════
+    function getSlips(o){
+      if(Array.isArray(o.slips)&&o.slips.length)return o.slips;
+      try{if(o.slip&&o.slip.startsWith('['))return JSON.parse(o.slip)}catch(e){}
+      if(o.slip&&(o.slip.startsWith('data:')||o.slip.startsWith('http')))return[{data:o.slip,ts:o.ts||'',label:'Original'}];
+      return[];
+    }
+    function renderSlipStack(slips,idx){
+      if(!slips.length)return'';
+      return'<div class="slip-stack">'+slips.map((s2,si)=>{
+        const isReply=si>0;const lbl=isReply?'Reply #'+si:'Original';
+        const cls=isReply?'reply':'original';
+        const ts=s2.ts?new Date(s2.ts).toLocaleString():'';
+        return`<div class="slip-entry"><div class="slip-label ${cls}"><span class="slip-tag">${lbl}</span><span class="slip-ts">${ts}</span></div><img src="${s2.data}" style="width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlipImg('${s2.data.replace(/'/g,'')}')">`+(isReply?'':'')+'</div>';
+      }).join('')+'</div>';
+    }
+    window.showSlipImg=function(src){document.getElementById('mSlipImg').src=src;document.getElementById('slipMod').classList.add('open')};
+    window.handleResub=function(qnum,input){
+      const f=input&&input.files&&input.files[0];if(!f)return;
+      if(!f.type.startsWith('image/')){toast('Please choose an image');return}
+      if(f.size>5e6){toast('Max 5MB');return}
+      const r=new FileReader();
+      r.onload=async function(ev){await resubmitSlip(qnum,ev.target.result)};
+      r.readAsDataURL(f);
+    };
+    async function resubmitSlip(qnum,newData){
+      const orders=getOrders();const o=orders.find(x=>x.queue_num===qnum);
+      if(!o){toast(t('orderNotFound'));return}
+      const existing=getSlips(o);
+      existing.push({data:newData,ts:new Date().toISOString(),label:'Reply'});
+      o.slips=existing;o.slip=newData;
+      o.status='pending';o.resubmitted=true;
+      o.reject_reason='';o.report_reason='';o.reported=false;
+      saveOrders(orders);
+      if(useSB&&sb){
+        await pushUpdate(o,{status:'pending',slip_url:JSON.stringify(existing),reject_reason:'',reported:false,report_reason:''});
+      }
+      renderMyOrders();
+      if(lastTrack===qnum){const upd=getOrders().find(x=>x.queue_num===qnum);if(upd)document.getElementById('trackResult').innerHTML=trackCardHTML(upd)}
+      toast(lang==='th'?'อัปเดตสลิปแล้ว — ออเดอร์กลับเข้าคิว':'Slip updated — order is back in the queue');
+    }
+    window.resubmitSlip=resubmitSlip;
     window.resubmitOrder=function(qnum){
       isResend=true;
       const orders=getOrders();const o=orders.find(x=>x.queue_num===qnum);if(!o){toast(t('orderNotFound'));return}
