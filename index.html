@@ -70,6 +70,26 @@
     .co-type{display:flex;gap:.4rem;margin-bottom:.7rem}
     .co-type button{flex:1;padding:.55rem .4rem;border:1.5px solid rgba(95,20,49,.18);background:#fff;border-radius:8px;font-family:'Inter',sans-serif;font-weight:700;font-size:.68rem;color:var(--m);cursor:pointer;line-height:1.25}
     .co-type button.on{background:var(--m);color:#fff;border-color:var(--m)}
+    .announce-bar{background:linear-gradient(92deg,#F3D27A 0%,#F6E3A6 100%);color:#5a3e10;padding:.6rem 1rem;font-size:.76rem;font-weight:700;text-align:center;display:none;align-items:center;justify-content:center;gap:.5rem;line-height:1.35;border-bottom:1px solid rgba(0,0,0,.06)}
+    .announce-bar.on{display:flex}
+    .announce-bar svg{flex-shrink:0;width:16px;height:16px;stroke:#8a6d20;fill:none;stroke-width:2}
+    .ann-ctrl{display:flex;gap:.4rem;margin-bottom:.8rem;align-items:center}
+    .ann-ctrl input{flex:1;padding:.45rem .6rem;border:1.5px solid rgba(95,20,49,.14);border-radius:6px;font-family:'Inter',sans-serif;font-size:.74rem}
+    .ann-ctrl button{padding:.45rem .7rem;border-radius:6px;font-family:'Inter',sans-serif;font-weight:700;font-size:.68rem;cursor:pointer;white-space:nowrap;border:none}
+    .sr-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem}
+    .sr-card{background:#faf7f3;border-radius:10px;padding:.8rem;text-align:center}
+    .sr-card .sr-num{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;color:var(--m)}
+    .sr-card .sr-lbl{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-top:.1rem}
+    .sr-sec{margin-bottom:1rem}
+    .sr-sec h4{font-family:'Playfair Display',serif;font-style:italic;font-size:.85rem;color:var(--m);margin-bottom:.5rem}
+    .sr-tbl{width:100%;border-collapse:collapse;font-size:.72rem}
+    .sr-tbl th{text-align:left;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.05em;font-size:.58rem;padding:.35rem .4rem;border-bottom:1.5px solid rgba(95,20,49,.1)}
+    .sr-tbl td{padding:.4rem;border-bottom:1px solid rgba(95,20,49,.04)}
+    .sr-tbl td:last-child,.sr-tbl th:last-child{text-align:right}
+    .sr-tbl tr:last-child td{border-bottom:none;font-weight:700}
+    .sr-bar{height:6px;border-radius:3px;background:rgba(95,20,49,.08);overflow:hidden;margin-top:.15rem}
+    .sr-fill{height:100%;border-radius:3px;background:var(--m)}
+    @media(max-width:480px){.sr-grid{grid-template-columns:1fr}}
     .audi-wrap{margin-top:.2rem}
     .audi-screen{background:linear-gradient(#360b1c,#5F1431);color:#fff;text-align:center;font-size:.6rem;letter-spacing:.25em;font-weight:700;padding:.32rem;border-radius:7px 7px 2px 2px}
     .audi-screen-sub{text-align:center;font-size:.56rem;color:#a99;margin:.25rem 0 .6rem}
@@ -372,6 +392,7 @@
         <p>October 26, 2026 &bull; Official Food &amp; Drinks</p>
       </div>
     </div>
+    <div class="announce-bar" id="announceBar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span id="announceText"></span></div>
     <div class="cat-bar"><div class="cat-inner" id="catTabs"></div></div>
     <div class="shop-body">
       <div class="grid" id="productGrid"></div>
@@ -404,10 +425,17 @@
     <div class="adm-wrap">
       <div id="admLogin" class="adm-login">
         <h3>Admin Access</h3>
+        <div class="fg"><label>Email</label><input type="email" id="admEmail" placeholder="admin@example.com" onkeydown="if(event.key==='Enter')document.getElementById('admPass').focus()"></div>
         <div class="fg"><label>Password</label><input type="password" id="admPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')admDoLogin()"></div>
-        <button class="btn-full" style="margin-top:.5rem" onclick="admDoLogin()">Enter</button>
+        <button class="btn-full" style="margin-top:.5rem" id="admLoginBtn" onclick="admDoLogin()">Sign In</button>
+        <p style="font-size:.58rem;color:#aaa;text-align:center;margin-top:.6rem">Create your admin account in Supabase → Authentication → Users.<br>Or use the offline password: <code>eis28film</code></p>
       </div>
       <div id="admDash" style="display:none">
+        <div class="ann-ctrl reveal" id="annCtrl">
+          <input type="text" id="annInput" placeholder="Type an announcement for customers…" onkeydown="if(event.key==='Enter')setAnnounce()">
+          <button onclick="setAnnounce()" style="background:var(--warn-bg);color:#8a6d20">📢 Set</button>
+          <button onclick="clearAnnounce()" style="background:rgba(155,34,38,.08);color:var(--danger)">Clear</button>
+        </div>
         <div class="adm-stats reveal">
           <div class="st-card"><div class="st-num" id="sT">0</div><div class="st-lbl">Total</div></div>
           <div class="st-card"><div class="st-num" id="sP">0</div><div class="st-lbl">Received</div></div>
@@ -424,8 +452,10 @@
             <button class="ab" id="shopToggleBtn" onclick="toggleShop()" style="background:var(--success);color:#fff">🔓 Shop Open</button>
             <button class="ab" id="viewToggleBtn" onclick="toggleAdmView()" style="background:#1565C0;color:#fff">🛵 Runner View</button>
             <button class="ab" onclick="openMenu()" style="background:#fff;color:var(--m);border:1.5px solid var(--m)">✎ Edit Menu</button>
+            <button class="ab" onclick="openSalesReport()" style="background:#F3D27A;color:#5a3e10">📊 Sales</button>
             <button class="ab ab-m" onclick="exportCSV()">Export CSV</button>
             <button class="ab ab-d" onclick="clearAll()">Clear</button>
+            <button class="ab" id="admLogoutBtn" onclick="admLogout()" style="background:#555;color:#fff">🔒 Logout</button>
           </div>
         </div>
         <div class="order-feed reveal" id="orderFeed"><div class="of-empty">No orders yet. New orders will appear automatically.</div></div>
@@ -521,6 +551,16 @@
       <p data-i18n="thankMsg">Your order has been placed! Our team will verify your payment and start preparing your food. It'll be delivered to your classroom soon.</p>
       <span class="ty-track" data-i18n="saveOrder">Save your order number to track it anytime.</span>
       <button class="ty-btn" onclick="closeTy()" data-i18n="backToShop">Back to Shop</button>
+    </div>
+  </div>
+
+  <!-- SALES REPORT -->
+  <div class="modal-ov" id="salesMod">
+    <div class="modal-box" style="max-width:560px;max-height:85vh;overflow-y:auto">
+      <button class="modal-x" onclick="closeSalesReport()">&times;</button>
+      <h3 style="font-family:'Playfair Display',serif;font-style:italic;color:var(--m);margin-bottom:.15rem;font-size:1.1rem">Sales Report</h3>
+      <p style="font-size:.6rem;color:#999;margin-bottom:.8rem" id="srTime"></p>
+      <div id="srBody"></div>
     </div>
   </div>
 
@@ -656,6 +696,7 @@
             if(remoteTS>catalogTS){products=cat[0].products;catalogTS=remoteTS;localStorage.setItem(CAT_KEY,JSON.stringify({ts:catalogTS,products}));if(typeof renderCats==='function'){renderCats();renderGrid()}}
           }
         }catch(e){}
+        await fetchAnnounce();
       }catch(e){console.warn('Sync failed:',e)}
     }
 
@@ -996,21 +1037,115 @@
     }
 
     // ═══════ ADMIN ═══════
-    window.admDoLogin=function(){
-      if(document.getElementById('admPass').value===ADMIN_PASS){
-        document.getElementById('admLogin').style.display='none';document.getElementById('admDash').style.display='block';admLoggedIn=true;
-        sessionStorage.setItem('jfs_admin','true');
-        renderAdm();startPoll();
+    function enterAdmin(){
+      document.getElementById('admLogin').style.display='none';
+      document.getElementById('admDash').style.display='block';
+      admLoggedIn=true;sessionStorage.setItem('jfs_admin','true');renderAdm();startPoll();
+    }
+    window.admDoLogin=async function(){
+      const email=(document.getElementById('admEmail').value||'').trim();
+      const pass=document.getElementById('admPass').value;
+      const btn=document.getElementById('admLoginBtn');
+      btn.disabled=true;btn.textContent='Signing in…';
+      if(useSB&&sb&&email){
+        try{const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+          if(!error&&data?.session){enterAdmin();btn.disabled=false;btn.textContent='Sign In';toast('Signed in ✓');return}
+        }catch(e){}
       }
-      else toast('Wrong password');
+      if(pass===ADMIN_PASS){enterAdmin();btn.disabled=false;btn.textContent='Sign In';toast('Signed in (offline mode)');return}
+      btn.disabled=false;btn.textContent='Sign In';toast('Wrong email or password');
     };
+    // ═══════ ANNOUNCEMENT ═══════
+    let currentAnnounce='';
+    function showAnnounce(text){
+      currentAnnounce=text||'';
+      const bar=document.getElementById('announceBar'),span=document.getElementById('announceText');
+      if(!bar)return;
+      if(text&&text.trim()){span.textContent=text;bar.classList.add('on')}
+      else{bar.classList.remove('on');span.textContent=''}
+    }
+    window.setAnnounce=async function(){
+      const text=document.getElementById('annInput').value.trim();
+      if(!text){toast('Type something first');return}
+      currentAnnounce=text;showAnnounce(text);
+      if(useSB&&sb){try{await sb.from('settings').upsert({id:'announcement',value:text})}catch(e){console.warn('announce sync:',e)}}
+      toast('Announcement set ✓');
+    };
+    window.clearAnnounce=async function(){
+      currentAnnounce='';showAnnounce('');document.getElementById('annInput').value='';
+      if(useSB&&sb){try{await sb.from('settings').upsert({id:'announcement',value:''})}catch(e){}}
+      toast('Announcement cleared');
+    };
+    async function fetchAnnounce(){
+      if(!useSB||!sb)return;
+      try{const{data}=await sb.from('settings').select('value').eq('id','announcement').limit(1);
+        if(data&&data[0]){const v=data[0].value||'';if(v!==currentAnnounce)showAnnounce(v)}}catch(e){}
+    }
 
-    // Auto-restore admin session on page load
-    function checkAdminSession(){
-      if(sessionStorage.getItem('jfs_admin')==='true'){
-        document.getElementById('admLogin').style.display='none';document.getElementById('admDash').style.display='block';admLoggedIn=true;
-        renderAdm();startPoll();
-      }
+    // ═══════ SALES REPORT ═══════
+    window.openSalesReport=function(){renderSalesReport();document.getElementById('salesMod').classList.add('open')};
+    window.closeSalesReport=function(){document.getElementById('salesMod').classList.remove('open')};
+    function renderSalesReport(){
+      const orders=getOrders();
+      const confirmed=orders.filter(o=>['cooking','delivering','completed'].includes(o.status));
+      const pending=orders.filter(o=>o.status==='pending');
+      const rejected=orders.filter(o=>o.status==='rejected');
+      const deleted=orders.filter(o=>o.status==='deleted');
+      const totalRev=confirmed.reduce((s2,o)=>s2+o.total,0);
+      const pendingRev=pending.reduce((s2,o)=>s2+o.total,0);
+      const qrOrders=confirmed.filter(o=>(o.payment_method||'qr')!=='cash');
+      const cashOrders=confirmed.filter(o=>o.payment_method==='cash');
+      const qrRev=qrOrders.reduce((s2,o)=>s2+o.total,0);
+      const cashRev=cashOrders.reduce((s2,o)=>s2+o.total,0);
+      const itemMap={};
+      confirmed.forEach(o=>(o.items||[]).forEach(i=>{
+        if(!itemMap[i.id])itemMap[i.id]={name:i.name,units:0,rev:0};
+        itemMap[i.id].units+=i.qty;itemMap[i.id].rev+=i.qty*i.price}));
+      const items=Object.values(itemMap).sort((a,b)=>b.rev-a.rev);
+      const maxRev=items.length?items[0].rev:1;
+      const shopMap={};
+      confirmed.forEach(o=>(o.items||[]).forEach(i=>{
+        const prod=products.find(p=>p.id===i.id);const cat=prod?prod.cat:i.name;
+        if(!shopMap[cat])shopMap[cat]={name:cat,units:0,rev:0};
+        shopMap[cat].units+=i.qty;shopMap[cat].rev+=i.qty*i.price}));
+      const shops=Object.values(shopMap).sort((a,b)=>b.rev-a.rev);
+      const maxShopRev=shops.length?shops[0].rev:1;
+      document.getElementById('srTime').textContent='Generated '+new Date().toLocaleString();
+      let h='';
+      h+=`<div class="sr-grid"><div class="sr-card"><div class="sr-num">\u0e3f${totalRev.toLocaleString()}</div><div class="sr-lbl">Confirmed Revenue</div></div><div class="sr-card"><div class="sr-num">${confirmed.length}</div><div class="sr-lbl">Confirmed Orders</div></div><div class="sr-card"><div class="sr-num">\u0e3f${qrRev.toLocaleString()}</div><div class="sr-lbl">PromptPay (${qrOrders.length})</div></div><div class="sr-card"><div class="sr-num">\u0e3f${cashRev.toLocaleString()}</div><div class="sr-lbl">Cash to Collect (${cashOrders.length})</div></div></div>`;
+      if(pending.length||rejected.length||deleted.length){
+        h+='<div style="background:rgba(233,196,74,.12);border-radius:8px;padding:.55rem .7rem;font-size:.68rem;color:#8a6d20;margin-bottom:1rem;line-height:1.5">';
+        if(pending.length)h+=`\u231b ${pending.length} pending (\u0e3f${pendingRev.toLocaleString()}) awaiting confirmation. `;
+        if(rejected.length)h+=`\u274c ${rejected.length} rejected. `;
+        if(deleted.length)h+=`🗑 ${deleted.length} deleted.`;
+        h+='</div>';}
+      if(items.length){
+        h+='<div class="sr-sec"><h4>Per-Item Breakdown</h4><table class="sr-tbl"><tr><th>Item</th><th>Units</th><th>Revenue</th></tr>';
+        items.forEach(i=>{const pct=Math.round(i.rev/maxRev*100);
+          h+=`<tr><td>${i.name}<div class="sr-bar"><div class="sr-fill" style="width:${pct}%"></div></div></td><td>${i.units}</td><td>\u0e3f${i.rev.toLocaleString()}</td></tr>`});
+        const totalUnits=items.reduce((s2,i)=>s2+i.units,0);
+        h+=`<tr><td>Total</td><td>${totalUnits}</td><td>\u0e3f${totalRev.toLocaleString()}</td></tr></table></div>`;}
+      if(shops.length){
+        h+='<div class="sr-sec"><h4>Per-Shop Breakdown</h4><table class="sr-tbl"><tr><th>Shop</th><th>Units</th><th>Revenue</th></tr>';
+        shops.forEach(s3=>{const pct=Math.round(s3.rev/maxShopRev*100);
+          h+=`<tr><td>${s3.name}<div class="sr-bar"><div class="sr-fill" style="width:${pct}%"></div></div></td><td>${s3.units}</td><td>\u0e3f${s3.rev.toLocaleString()}</td></tr>`});
+        h+=`<tr><td>Total</td><td>${shops.reduce((s4,s3)=>s4+s3.units,0)}</td><td>\u0e3f${totalRev.toLocaleString()}</td></tr></table></div>`;}
+      if(!confirmed.length)h+='<div style="text-align:center;color:#aaa;padding:2rem;font-size:.8rem">No confirmed orders yet. Revenue appears once orders move past \u201cpending.\u201d</div>';
+      document.getElementById('srBody').innerHTML=h;
+    }
+    window.admLogout=async function(){
+      if(useSB&&sb){try{await sb.auth.signOut()}catch(e){}}
+      admLoggedIn=false;sessionStorage.removeItem('jfs_admin');
+      document.getElementById('admDash').style.display='none';
+      document.getElementById('admLogin').style.display='';
+      document.getElementById('admEmail').value='';
+      document.getElementById('admPass').value='';
+      toast('Logged out');
+    };
+    async function checkAdminSession(){
+      if(useSB&&sb){try{const{data}=await sb.auth.getSession();
+        if(data?.session){enterAdmin();return}}catch(e){}}
+      if(sessionStorage.getItem('jfs_admin')==='true'){enterAdmin()}
     }
 
     const TABS=[{k:'all',l:'All Orders'},{k:'pending',l:'Order Received'},{k:'cooking',l:'Cooking'},{k:'delivering',l:'Delivering'},{k:'completed',l:'Finished'},{k:'rejected',l:'Rejected'},{k:'deleted',l:'Deleted'}];
@@ -1030,8 +1165,10 @@
       const orders=getOrders();
       // View toggle (Kitchen vs Runner)
       const isRunner=admView==='runner';
+      const annIn=document.getElementById('annInput');if(annIn&&currentAnnounce&&!annIn.value)annIn.value=currentAnnounce;
       const vt=document.getElementById('viewToggleBtn');if(vt){vt.textContent=isRunner?'🍳 Kitchen View':'🛵 Runner View'}
       const stEl=document.querySelector('.adm-stats');if(stEl)stEl.style.display=isRunner?'none':'';
+      const annCtrl=document.getElementById('annCtrl');if(annCtrl)annCtrl.style.display=isRunner?'none':'';
       document.getElementById('admTabs').style.display=isRunner?'none':'';
       document.getElementById('orderFeed').style.display=isRunner?'none':'';
       document.getElementById('runnerFeed').style.display=isRunner?'block':'none';
@@ -1285,10 +1422,10 @@
       document.getElementById('navLinks').classList.remove('open');
       document.getElementById('cartFab').style.display=pg==='shop'?'flex':'none';
       setTimeout(()=>document.querySelectorAll('.reveal:not(.vis)').forEach(el=>revObs.observe(el)),120);
-      if(pg==='admin'){checkAdminSession();if(admLoggedIn)renderAdm()}
+      if(pg==='admin'){checkAdminSession().then(()=>{if(admLoggedIn)renderAdm()}).catch(()=>{})}
       if(pg==='track')renderMyOrders();
     };
-    if(location.search.includes('admin')||location.hash==='#admin'){switchPage('admin');checkAdminSession()}
+    if(location.search.includes('admin')||location.hash==='#admin'){switchPage('admin');checkAdminSession().catch(()=>{})}
 
     const nav=document.getElementById('siteNav');
     addEventListener('scroll',()=>nav.classList.toggle('sc',scrollY>60));
