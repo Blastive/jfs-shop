@@ -102,6 +102,30 @@
     .slip-label.original .slip-tag{background:rgba(0,0,0,.05);color:#aaa}
     .slip-label.reply .slip-tag{background:rgba(45,106,79,.12);color:var(--success)}
     .slip-ts{font-size:.5rem;color:#bbb;font-weight:400;text-transform:none;letter-spacing:0}
+    .opt-name{font-family:'Playfair Display',serif;font-style:italic;font-size:1rem;color:var(--m);margin-bottom:.3rem}
+    .opt-base{font-size:.7rem;color:#999;margin-bottom:.8rem}
+    .opt-grp{margin-bottom:.7rem}
+    .opt-grp label{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#888;display:block;margin-bottom:.3rem}
+    .opt-grp select{width:100%;padding:.5rem .6rem;border:1.5px solid rgba(95,20,49,.15);border-radius:8px;font-family:'Inter','Noto Sans Thai',sans-serif;font-size:.78rem;background:#fff;appearance:auto}
+    .opt-total{text-align:center;font-family:'Playfair Display',serif;font-weight:900;font-size:1.1rem;color:var(--m);margin:.6rem 0}
+    .opt-tags{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.15rem}
+    .opt-tag{font-size:.55rem;background:rgba(95,20,49,.06);color:var(--m);padding:.15rem .4rem;border-radius:100px;font-weight:600}
+    .notif-bell{position:relative;cursor:pointer;margin-right:.5rem;background:none;border:none;padding:.2rem}
+    .notif-bell svg{width:20px;height:20px;stroke:var(--m);fill:none;stroke-width:1.8}
+    .notif-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--danger);display:none}
+    .notif-dot.on{display:block;animation:pulse 1.5s infinite}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+    .me-opts{margin-top:.5rem;padding-top:.5rem;border-top:1px solid rgba(95,20,49,.06)}
+    .me-opts summary{font-size:.62rem;font-weight:700;color:var(--m);cursor:pointer;text-transform:uppercase;letter-spacing:.04em}
+    .me-opt-grp{background:rgba(95,20,49,.02);border-radius:6px;padding:.5rem;margin-top:.4rem}
+    .me-opt-grp-hd{display:flex;gap:.4rem;align-items:center;margin-bottom:.3rem}
+    .me-opt-grp-hd input{flex:1;padding:.3rem .4rem;border:1px solid rgba(95,20,49,.12);border-radius:4px;font-size:.7rem;font-family:'Inter',sans-serif}
+    .me-opt-grp-hd label{font-size:.55rem;display:flex;align-items:center;gap:.2rem;white-space:nowrap}
+    .me-choice{display:flex;gap:.3rem;align-items:center;margin-top:.25rem}
+    .me-choice input{padding:.25rem .35rem;border:1px solid rgba(95,20,49,.1);border-radius:4px;font-size:.68rem;font-family:'Inter',sans-serif}
+    .me-choice input:first-child{flex:1}
+    .me-choice input:nth-child(2){width:55px;text-align:right}
+    .resub-msg{width:100%;padding:.45rem .6rem;border:1.5px solid rgba(95,20,49,.14);border-radius:8px;font-family:'Inter','Noto Sans Thai',sans-serif;font-size:.74rem;margin-top:.5rem;resize:vertical;min-height:40px}
     .resub-badge{display:inline-block;background:rgba(45,106,79,.12);color:var(--success);font-size:.5rem;font-weight:800;padding:.15rem .45rem;border-radius:100px;letter-spacing:.04em;margin-left:.4rem;vertical-align:middle}
     .audi-wrap{margin-top:.2rem}
     .audi-screen{background:linear-gradient(#360b1c,#5F1431);color:#fff;text-align:center;font-size:.6rem;letter-spacing:.25em;font-weight:700;padding:.32rem;border-radius:7px 7px 2px 2px}
@@ -392,7 +416,8 @@
       <a href="javascript:void(0)" onclick="switchPage('track')" data-page="track" data-i18n="track">Track Order</a>
     </div>
     <div class="nav-right">
-      <div class="lang-seg" id="langSeg"><button data-l="en" onclick="setLang('en')">EN</button><button data-l="th" onclick="setLang('th')">ไทย</button></div>
+      <button class="notif-bell" id="notifBell" onclick="ackNotif()" style="display:none"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><div class="notif-dot" id="notifDot"></div></button>
+<div class="lang-seg" id="langSeg"><button data-l="en" onclick="setLang('en')">EN</button><button data-l="th" onclick="setLang('th')">ไทย</button></div>
       <img src="eis-logo.png" alt="EIS">
       <button class="nt" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
@@ -571,6 +596,14 @@
     </div>
   </div>
 
+  <!-- OPTION PICKER -->
+  <div class="modal-ov" id="optMod">
+    <div class="modal-box" style="max-width:360px">
+      <button class="modal-x" onclick="closeOptPicker()">&times;</button>
+      <div id="optContent"></div>
+    </div>
+  </div>
+
   <!-- SALES REPORT -->
   <div class="modal-ov" id="salesMod">
     <div class="modal-box" style="max-width:560px;max-height:85vh;overflow-y:auto">
@@ -658,7 +691,7 @@
     }
     let products=loadCatalog();
 
-    let cart={},stockMap={},slipData='',admLoggedIn=false,activeAdmTab='all',activeCat='All',admView='kitchen',menuDraft=[],coType='room',coLoc=null,lastTrack=null,isResend=false;
+    let cart={},cartMeta={},stockMap={},slipData='',admLoggedIn=false,activeAdmTab='all',activeCat='All',admView='kitchen',menuDraft=[],coType='room',coLoc=null,lastTrack=null,isResend=false,optProduct=null,optPicks=[],prevMyStatuses={};
     const ph='<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>';
 
     // ═══════ SUPABASE + LOCAL STORAGE ═══════
@@ -865,17 +898,22 @@
       stockMap=getStock();
       const list=activeCat==='All'?products:(activeCat==='Food'||activeCat==='Drinks')?products.filter(p=>(p.group||p.cat)===activeCat):products.filter(p=>p.cat===activeCat);
       document.getElementById('productGrid').innerHTML=list.map(p=>{
-        const q=cart[p.id]||0,stk=stockMap[p.id]??p.stock,out=stk<=0,low=stk>0&&stk<=10;
-        return`<div class="card${out?' sold-out':''}"><div class="card-img">${p.img?`<img src="${p.img}">`:`<div class="ph">${ph}</div>`}${out?`<div class="card-badge out">${t('soldOut')}</div>`:p.badge?`<div class="card-badge">${p.badge}</div>`:''}</div><div class="card-body"><div class="card-name">${pname(p)}</div><div class="card-desc">${pdesc(p)}</div><div class="card-stock${low?' low':''}">${out?t('outStock'):stk<=20?stk+' '+t('left'):''}</div><div class="card-bottom"><div class="card-price">฿${p.price}</div>${out?'':q===0?`<button class="card-add" onclick="addItem('${p.id}')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`:`<div class="qty-step"><button class="qty-btn" onclick="chgQty('${p.id}',-1)">−</button><div class="qty-val">${q}</div><button class="qty-btn" onclick="chgQty('${p.id}',1)">+</button></div>`}</div></div></div>`;
+        const q=cartQtyForProduct(p.id),stk=stockMap[p.id]??p.stock,out=stk<=0,low=stk>0&&stk<=10;
+        return`<div class="card${out?' sold-out':''}"><div class="card-img">${p.img?`<img src="${p.img}">`:`<div class="ph">${ph}</div>`}${out?`<div class="card-badge out">${t('soldOut')}</div>`:p.badge?`<div class="card-badge">${p.badge}</div>`:''}</div><div class="card-body"><div class="card-name">${pname(p)}</div><div class="card-desc">${pdesc(p)}</div><div class="card-stock${low?' low':''}">${out?t('outStock'):stk<=20?stk+' '+t('left'):''}</div><div class="card-bottom"><div class="card-price">฿${p.price}</div>${out?'':q===0?`<button class="card-add" onclick="addItem('${p.id}')" title="${p.options&&p.options.length?'Choose options':'Add to cart'}"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`:`<div class="qty-step"><button class="qty-btn" onclick="chgQty('${p.id}',-1)">−</button><div class="qty-val">${q}</div><button class="qty-btn" onclick="chgQty('${p.id}',1)">+</button></div>`}</div></div></div>`;
       }).join('');
     }
 
     // ═══════ CART ═══════
-    window.addItem=function(id){if(!isShopOpen()){toast(t('shopClosed'));return}const stk=stockMap[id]??0;if((cart[id]||0)>=stk){toast(t('notEnough'));return}cart[id]=(cart[id]||0)+1;toast(pname(products.find(x=>x.id===id))+' '+t('addedToBasket'));bump();renderGrid();renderDrw()};
-    window.chgQty=function(id,d){const n=(cart[id]||0)+d;const stk=stockMap[id]??0;if(n>stk){toast(t('notEnough'));return}if(n<=0)delete cart[id];else cart[id]=n;bump();renderGrid();renderDrw()};
+    window.addItem=function(id){if(!isShopOpen()){toast(t('shopClosed'));return}const p=products.find(x=>x.id===id);if(!p)return;if(p.options&&p.options.length){openOptPicker(id);return}const stk=stockMap[id]??0;if(cartQtyForProduct(id)>=stk){toast(t('notEnough'));return}cart[id]=(cart[id]||0)+1;toast(pname(p)+' '+t('addedToBasket'));bump();renderGrid();renderDrw()};
+    window.chgQty=function(k,d){const n=(cart[k]||0)+d;const bid=cartBaseId(k);const stk=stockMap[bid]??0;const othersQty=cartQtyForProduct(bid)-(cart[k]||0);if(n+othersQty>stk){toast(t('notEnough'));return}if(n<=0){delete cart[k];delete cartMeta[k]}else cart[k]=n;bump();renderGrid();renderDrw()};
     function cCount(){return Object.values(cart).reduce((s,q)=>s+q,0)}
-    function cTotal(){return Object.entries(cart).reduce((s,[id,q])=>{const p=products.find(x=>x.id===id);return s+(p?p.price*q:0)},0)}
+    function cTotal(){return Object.entries(cart).reduce((s2,[k,q])=>{const p=products.find(x=>x.id===cartBaseId(k));return s2+(p?(p.price+cartExtraPerUnit(k))*q:0)},0)}
     function bump(){const b=document.getElementById('cBadge'),n=cCount();if(n>0){b.style.display='flex';b.textContent=n;b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')}else b.style.display='none'}
+    function cartBaseId(k){return k.split('::')[0]}
+    function cartKey(id,picks){if(!picks||!picks.length)return id;return id+'::'+picks.map(p=>p.choice).join('|')}
+    function cartExtraPerUnit(k){const m=cartMeta[k];return m?m.picks.reduce((s2,p)=>s2+(p.extra||0),0):0}
+    function cartQtyForProduct(pid){return Object.entries(cart).reduce((s2,[k,q])=>cartBaseId(k)===pid?s2+q:s2,0)}
+    function optLabel(picks){return picks.map(p=>{const nm=(lang==='th'&&p.choice_th)?p.choice_th:p.choice;return p.extra?nm+' +\u0e3f'+p.extra:nm}).join(', ')}
 
     // ═══════ DRAWER ═══════
     window.openDrw=function(){renderDrw();document.getElementById('drwOv').classList.add('open');document.getElementById('drw').classList.add('open');document.body.style.overflow='hidden'};
@@ -884,10 +922,10 @@
       const body=document.getElementById('drwBody'),foot=document.getElementById('drwFoot'),entries=Object.entries(cart);
       document.getElementById('drwCount').textContent=entries.length?`· ${cCount()} ${t('items')}`:'';
       if(!entries.length){body.innerHTML=`<div class="drw-empty"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg><p>${t('emptyBasket')}</p><span>${t('addItems')}</span></div>`;foot.style.display='none';return}
-      body.innerHTML=entries.map(([id,q])=>{const p=products.find(x=>x.id===id);return`<div class="drw-item"><div class="di-img">${p.img?`<img src="${p.img}">`:`<div class="ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></div>`}</div><div class="di-info"><div class="di-name">${pname(p)}</div><div class="di-price">฿${p.price} ${t('perEach')}</div><div class="di-ctrl"><div class="qty-step"><button class="qty-btn" onclick="chgQty('${id}',-1)">−</button><div class="qty-val">${q}</div><button class="qty-btn" onclick="chgQty('${id}',1)">+</button></div><button class="di-rm" onclick="rmItem('${id}')">${t('remove')}</button></div></div><div style="font-family:'Playfair Display',serif;font-weight:700;color:var(--m)">฿${p.price*q}</div></div>`}).join('');
+      body.innerHTML=entries.map(([k,q])=>{const p=products.find(x=>x.id===cartBaseId(k));if(!p)return'';const ex=cartExtraPerUnit(k);const m=cartMeta[k];const optsHtml=m&&m.picks&&m.picks.length?`<div style="font-size:.6rem;color:#888;margin-top:.1rem">${optLabel(m.picks)}</div>`:'';return`<div class="drw-item"><div class="di-img">${p.img?`<img src="${p.img}">`:`<div class="ph"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2"/></svg></div>`}</div><div class="di-info"><div class="di-name">${pname(p)}</div>${optsHtml}<div class="di-price">\u0e3f${p.price+ex} ${t('perEach')}</div><div class="di-ctrl"><div class="qty-step"><button class="qty-btn" onclick="chgQty('${k}',-1)">\u2212</button><div class="qty-val">${q}</div><button class="qty-btn" onclick="chgQty('${k}',1)">+</button></div><button class="di-rm" onclick="rmItem('${k}')">${t('remove')}</button></div></div><div style="font-family:'Playfair Display',serif;font-weight:700;color:var(--m)">\u0e3f${(p.price+ex)*q}</div></div>`}).join('');
       foot.style.display='block';document.getElementById('drwTotal').textContent='฿'+cTotal();
     }
-    window.rmItem=function(id){delete cart[id];bump();renderGrid();renderDrw()};
+    window.rmItem=function(k){delete cart[k];delete cartMeta[k];bump();renderGrid();renderDrw()};
 
     // ═══════ CHECKOUT ═══════
     let payMethod='qr'; // 'qr' or 'cash'
@@ -905,7 +943,7 @@
       updCoBtn(); // re-evaluate slip requirement
     };
 
-    function refreshCoSummary(){document.getElementById('coItems').innerHTML=Object.entries(cart).map(([id,q])=>{const p=products.find(x=>x.id===id);if(!p)return'';return`<div style="display:flex;justify-content:space-between;padding:.3rem 0;font-size:.75rem;border-bottom:1px solid rgba(95,20,49,.04)"><span>${pname(p)} ×${q}</span><span style="font-weight:600;color:var(--m)">฿${p.price*q}</span></div>`}).join('')}
+    function refreshCoSummary(){document.getElementById('coItems').innerHTML=Object.entries(cart).map(([k,q])=>{const p=products.find(x=>x.id===cartBaseId(k));if(!p)return'';const ex=cartExtraPerUnit(k);const m=cartMeta[k];const optsStr=m&&m.picks&&m.picks.length?' ('+optLabel(m.picks)+')':'';return`<div style="display:flex;justify-content:space-between;padding:.3rem 0;font-size:.75rem;border-bottom:1px solid rgba(95,20,49,.04)"><span>${pname(p)}${optsStr} \u00d7${q}</span><span style="font-weight:600;color:var(--m)">\u0e3f${(p.price+ex)*q}</span></div>`}).join('')}
     window.openCo=function(){closeDrw();if(!cCount())return;refreshCoSummary();const t=cTotal();document.getElementById('coTotal').textContent='฿'+t;document.getElementById('coQRAmt').textContent='฿'+t;document.getElementById('coCashAmt').textContent='฿'+t;renderPPQR(t);slipData='';document.getElementById('coSlipPrev').style.display='none';document.getElementById('coSlipIn').value='';payMethod='qr';setPayMethod('qr');updCoBtn();coLoc=null;coType='room';renderAudiPicker();setCoType('room');document.getElementById('coOv').classList.add('open');document.body.style.overflow='hidden'};
     window.closeCo=function(){document.getElementById('coOv').classList.remove('open');document.body.style.overflow=''};
 
@@ -938,7 +976,7 @@
         const order={
           id:oid,queue_num:qn,ts:new Date().toISOString(),
           buyer:(()=>{const nm=document.getElementById('coName').value.trim(),cl=document.getElementById('coClass').value.trim(),nt=document.getElementById('coNotes').value.trim();let rm,lc=null;if(coType==='audi'&&coLoc){lc=coLoc;rm='🎭 Auditorium · '+locReadable(coLoc,'en')}else{rm=document.getElementById('coRoom').value.trim()}return{name:nm,cls:cl,room:rm,notes:nt,loc:lc}})(),
-          items:Object.entries(cart).map(([id,q])=>{const p=products.find(x=>x.id===id);return{id:p.id,name:p.name,qty:q,price:p.price}}),
+          items:Object.entries(cart).map(([k,q])=>{const p=products.find(x=>x.id===cartBaseId(k));const ex=cartExtraPerUnit(k);const m=cartMeta[k];return{id:p.id,name:p.name,qty:q,price:p.price+ex,opts:m?m.picks:[]}}),
           total:cTotal(),slip:slipData,slips:slipData?[{data:slipData,ts:new Date().toISOString(),label:'Original'}]:[],payment_method:payMethod,status:'pending'
         };
         // Push to Supabase first (gets real queue_num)
@@ -950,7 +988,7 @@
         saveMyOrder(order.id,order.queue_num);
         localStorage.setItem('jfs_last_order',String(Date.now())); // cooldown
         // Reset form
-        cart={};slipData='';['coName','coClass','coRoom','coNotes'].forEach(id=>document.getElementById(id).value='');
+        cart={};cartMeta={};slipData='';['coName','coClass','coRoom','coNotes'].forEach(id=>document.getElementById(id).value='');
         document.getElementById('coSlipPrev').style.display='none';document.getElementById('coSlipIn').value='';
         btn.textContent=t('placeOrder');bump();renderGrid();closeCo();
         document.getElementById('tyQueue').textContent='#'+String(order.queue_num).padStart(3,'0');
@@ -1027,9 +1065,9 @@
       if(isIssue||isReported){
         const title=status==='rejected'?'Why your order was rejected':status==='deleted'?'Why your order was cancelled':isReported?'Your order has been flagged':'';
         const icon=status==='rejected'?'❌':status==='deleted'?'🗑':isReported?'⚠️':'';
-        issueBox=`<div style="margin-top:.8rem;padding:.8rem;background:rgba(155,34,38,.05);border-radius:10px;border-left:4px solid var(--danger)"><div style="font-size:.75rem;font-weight:700;color:var(--danger);margin-bottom:.4rem">${icon} ${title}</div><div style="font-size:.78rem;color:#555;line-height:1.6;margin-bottom:.5rem">${reason||'No specific reason provided.'}</div><div style="font-size:.72rem;font-weight:600;color:var(--m);margin-bottom:.3rem">What you should do:</div><ul style="font-size:.7rem;color:#666;line-height:1.8;padding-left:1.2rem;margin:0">${status==='rejected'?`<li>Check that you paid the correct amount (฿${total})</li><li>Make sure you uploaded the right payment slip</li>`:''} ${status==='deleted'?'<li>Your order has been cancelled and will not be prepared</li><li>If you already paid, contact us for a refund</li>':''} ${isReported?`<li>There may be an issue with your payment amount</li><li>Please verify your payment matches ฿${total}</li>`:''}<li>Contact us for help: <strong style="color:var(--m)">${CONTACT_PHONE}</strong></li></ul>${(status==='rejected'||isReported)?`<div class="resub-box"><label class="resub-btn">📎 ${t('fixResend')}<input type="file" accept="image/*" onchange="handleResub(${o.queue_num},this)" hidden></label><div class="resub-hint">${lang==='th'?'อัปโหลดสลิปใหม่เพื่อส่งออเดอร์กลับเข้าคิว':'Upload a new payment slip to put your order back in the queue'}</div></div>`:''}</div>`;
+        issueBox=`<div style="margin-top:.8rem;padding:.8rem;background:rgba(155,34,38,.05);border-radius:10px;border-left:4px solid var(--danger)"><div style="font-size:.75rem;font-weight:700;color:var(--danger);margin-bottom:.4rem">${icon} ${title}</div><div style="font-size:.78rem;color:#555;line-height:1.6;margin-bottom:.5rem">${reason||'No specific reason provided.'}</div><div style="font-size:.72rem;font-weight:600;color:var(--m);margin-bottom:.3rem">What you should do:</div><ul style="font-size:.7rem;color:#666;line-height:1.8;padding-left:1.2rem;margin:0">${status==='rejected'?`<li>Check that you paid the correct amount (฿${total})</li><li>Make sure you uploaded the right payment slip</li>`:''} ${status==='deleted'?'<li>Your order has been cancelled and will not be prepared</li><li>If you already paid, contact us for a refund</li>':''} ${isReported?`<li>There may be an issue with your payment amount</li><li>Please verify your payment matches ฿${total}</li>`:''}<li>Contact us for help: <strong style="color:var(--m)">${CONTACT_PHONE}</strong></li></ul>${(status==='rejected'||isReported)?`<div class="resub-box"><textarea class="resub-msg" id="resubMsg${o.queue_num}" placeholder="${lang==='th'?'บอกเราว่าเกิดอะไรขึ้น (ถ้ามี)':'Tell us what happened (optional)'}"></textarea><label class="resub-btn">📎 ${t('fixResend')}<input type="file" accept="image/*" onchange="handleResub(${o.queue_num},this)" hidden></label><div class="resub-hint">${lang==='th'?'อัปโหลดสลิปใหม่เพื่อส่งออเดอร์กลับเข้าคิว':'Upload a new slip to put your order back in the queue'}</div></div>`:''}</div>`;
       }
-      return`<div class="track-card" style="margin-bottom:1rem">${!isIssue?progressHTML(status):''}<div class="track-status"><div class="track-dot ${status}"></div><div class="track-status-text">${stxt}</div></div>${instr?`<div style="font-size:.72rem;color:#888;line-height:1.5;margin-bottom:.6rem">${instr}</div>`:''}<div class="track-detail" style="font-size:.72rem;color:#999"><strong style="color:var(--ch)">${qid}</strong> · ${name} · Room ${room} · ${payLabel}</div>${issueBox}<div class="track-items" style="margin-top:.6rem">${items.map(i=>`<div class="track-it"><span>${i.name} ×${i.qty}</span><span style="font-weight:600;color:var(--m)">฿${i.price*i.qty}</span></div>`).join('')}<div class="track-total"><span>Total</span><span>฿${total}</span></div></div>${(()=>{const ss=getSlips(o);return ss.length?renderSlipStack(ss,-1):''})()}${o.resubmitted?'<div style="text-align:center;margin-top:.3rem"><span class="resub-badge">🔄 Resubmitted</span></div>':''}</div>`;
+      return`<div class="track-card" style="margin-bottom:1rem">${!isIssue?progressHTML(status):''}<div class="track-status"><div class="track-dot ${status}"></div><div class="track-status-text">${stxt}</div></div>${instr?`<div style="font-size:.72rem;color:#888;line-height:1.5;margin-bottom:.6rem">${instr}</div>`:''}<div class="track-detail" style="font-size:.72rem;color:#999"><strong style="color:var(--ch)">${qid}</strong> · ${name} · Room ${room} · ${payLabel}</div>${issueBox}<div class="track-items" style="margin-top:.6rem">${items.map(i=>`<div class="track-it"><span>${i.name}${i.opts&&i.opts.length?` <span class="opt-tag">${i.opts.map(o2=>o2.choice).join(", ")}</span>`:""} ×${i.qty}</span><span style="font-weight:600;color:var(--m)">฿${i.price*i.qty}</span></div>`).join('')}<div class="track-total"><span>Total</span><span>฿${total}</span></div></div>${(()=>{const ss=getSlips(o);return ss.length?renderSlipStack(ss,-1):''})()}${o.resubmitted?'<div style="text-align:center;margin-top:.3rem"><span class="resub-badge">🔄 Resubmitted</span></div>':''}</div>`;
     }
 
     window.trackOrder=function(){
@@ -1073,6 +1111,80 @@
       if(pass===ADMIN_PASS){enterAdmin();btn.disabled=false;btn.textContent='Sign In';toast('Signed in (offline mode)');return}
       btn.disabled=false;btn.textContent='Sign In';toast('Wrong email or password');
     };
+    // ═══════ OPTION PICKER ═══════
+    function openOptPicker(id){
+      const p=products.find(x=>x.id===id);if(!p)return;optProduct=id;
+      optPicks=(p.options||[]).map(g=>({group:g.label,group_th:g.label_th||'',choice:g.required&&g.choices[0]?g.choices[0].name:'',choice_th:g.required&&g.choices[0]?(g.choices[0].name_th||''):'',extra:g.required&&g.choices[0]?g.choices[0].extra||0:0}));
+      renderOptPicker();document.getElementById('optMod').classList.add('open');
+    }
+    window.closeOptPicker=function(){document.getElementById('optMod').classList.remove('open')};
+    window.optSelect=function(gi,val){
+      const p=products.find(x=>x.id===optProduct);if(!p)return;
+      const g=p.options[gi];const c=g.choices.find(x=>x.name===val);
+      optPicks[gi]={group:g.label,group_th:g.label_th||'',choice:c?c.name:'',choice_th:c?(c.name_th||''):'',extra:c?c.extra||0:0};
+      renderOptPicker();
+    };
+    function renderOptPicker(){
+      const p=products.find(x=>x.id===optProduct);if(!p)return;
+      const extra=optPicks.reduce((s2,pk)=>s2+(pk.extra||0),0);
+      const validPicks=optPicks.filter(pk=>pk.choice);
+      const stk=stockMap[p.id]??p.stock;const inCart=cartQtyForProduct(p.id);const canAdd=inCart<stk;
+      let h=`<div class="opt-name">${pname(p)}</div><div class="opt-base">${pdesc(p)}</div>`;
+      (p.options||[]).forEach((g,gi)=>{
+        const lbl=(lang==='th'&&g.label_th)?g.label_th:g.label;
+        h+=`<div class="opt-grp"><label>${lbl}${g.required?' *':''}</label><select onchange="optSelect(${gi},this.value)">`;
+        if(!g.required)h+='<option value="">\u2014</option>';
+        g.choices.forEach(c=>{const cn=(lang==='th'&&c.name_th)?c.name_th:c.name;h+=`<option value="${c.name}" ${optPicks[gi]?.choice===c.name?'selected':''}>${cn}${c.extra?' +\u0e3f'+c.extra:''}</option>`});
+        h+='</select></div>';
+      });
+      const allReq=(p.options||[]).every((g,gi)=>!g.required||optPicks[gi]?.choice);
+      h+=`<div class="opt-total">\u0e3f${p.price+extra}</div>`;
+      h+=`<button class="btn-full" onclick="confirmOptAdd()" ${(!canAdd||!allReq)?'disabled':''}>${canAdd?(lang==='th'?'เพิ่มลงตะกร้า':'Add to Cart'):t('notEnough')}</button>`;
+      document.getElementById('optContent').innerHTML=h;
+    }
+    window.confirmOptAdd=function(){
+      const p=products.find(x=>x.id===optProduct);if(!p)return;
+      const picks=optPicks.filter(pk=>pk.choice);
+      const k=cartKey(p.id,picks);
+      const stk=stockMap[p.id]??0;
+      if(cartQtyForProduct(p.id)>=stk){toast(t('notEnough'));return}
+      cart[k]=(cart[k]||0)+1;
+      if(picks.length)cartMeta[k]={id:p.id,picks:picks};
+      closeOptPicker();toast(pname(p)+' '+t('addedToBasket'));bump();renderGrid();renderDrw();
+    };
+
+    // ═══════ CUSTOMER NOTIFICATIONS ═══════
+    function playChime(){
+      try{const ctx=new(window.AudioContext||window.webkitAudioContext)();
+        [523,659,784].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.12,ctx.currentTime+i*.14);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.14+.45);o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+i*.14);o.stop(ctx.currentTime+i*.14+.45)})
+      }catch(e){}
+    }
+    function playAlertChime(){
+      try{const ctx=new(window.AudioContext||window.webkitAudioContext)();
+        [440,349].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='triangle';o.frequency.value=f;g.gain.setValueAtTime(.15,ctx.currentTime+i*.2);g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+i*.2+.4);o.connect(g);g.connect(ctx.destination);o.start(ctx.currentTime+i*.2);o.stop(ctx.currentTime+i*.2+.4)})
+      }catch(e){}
+    }
+    function checkOrderNotifs(){
+      const myIds=JSON.parse(localStorage.getItem('jfs_myorders')||'[]');if(!myIds.length)return;
+      const orders=getOrders();const bell=document.getElementById('notifBell');const dot=document.getElementById('notifDot');
+      if(myIds.length)bell.style.display='';
+      let hasNew=false;
+      myIds.forEach(qn=>{
+        const o=orders.find(x=>x.queue_num===qn);if(!o)return;
+        const prev=prevMyStatuses[qn];const cur=o.status;
+        if(prev&&prev!==cur){
+          hasNew=true;
+          if(cur==='delivering'){playChime();toast(lang==='th'?'\U0001f6f5 ออเดอร์ #'+String(qn).padStart(3,'0')+' กำลังจัดส่ง!':'\U0001f6f5 Order #'+String(qn).padStart(3,'0')+' is on its way!')}
+          else if(cur==='cooking'){toast(lang==='th'?'\U0001f468\u200d\U0001f373 ออเดอร์ #'+String(qn).padStart(3,'0')+' กำลังทำ':'\U0001f468\u200d\U0001f373 Order #'+String(qn).padStart(3,'0')+' is being prepared')}
+          else if(cur==='completed'){playChime();toast(lang==='th'?'\u2705 ออเดอร์ #'+String(qn).padStart(3,'0')+' ส่งแล้ว!':'\u2705 Order #'+String(qn).padStart(3,'0')+' delivered!')}
+          else if(cur==='rejected'){playAlertChime();toast(lang==='th'?'\u274c ออเดอร์ #'+String(qn).padStart(3,'0')+' ถูกปฏิเสธ \u2014 ตรวจสอบสถานะ':'\u274c Order #'+String(qn).padStart(3,'0')+' rejected \u2014 check status')}
+        }
+        prevMyStatuses[qn]=cur;
+      });
+      if(hasNew&&dot)dot.classList.add('on');
+    }
+    window.ackNotif=function(){const d=document.getElementById('notifDot');if(d)d.classList.remove('on');switchPage('track')};
+
     // ═══════ ANNOUNCEMENT ═══════
     let currentAnnounce='';
     function showAnnounce(text){
@@ -1242,7 +1354,7 @@
         if(o.status==='rejected')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'pending')">↩ Undo</button>`;
         if(o.status==='deleted')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'pending')">↩ Restore</button>`;
 
-        return`<div class="of-card ${cc}"><div class="of-top"><div class="of-queue">${qid}</div><div class="of-time"><div class="of-dot ${e.cls==='fresh'?'of-dot-pulse':''}" style="background:${dc}"></div><span class="of-timer ${e.cls}" data-ts="${o.ts}">${e.txt}</span></div></div><div class="of-body"><div class="of-buyer">${name} ${payBadge}</div><div class="of-meta">${cls} · Room ${room} · ${sl}</div><div class="of-items">${(o.items||[]).map(i=>`<div class="of-it"><span>${i.name} ×${i.qty}</span><span>฿${i.price*i.qty}</span></div>`).join('')}</div><div class="of-total"><span>Total</span><span>฿${o.total}</span></div>${rejReason}${delReason}${reportInfo}${notes?`<div style="margin-top:.5rem;padding:.4rem .6rem;background:rgba(95,20,49,.03);border-radius:6px;font-size:.65rem;color:#666">📝 <strong>Notes:</strong> ${notes}</div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc">Notes: —</div>`}${(()=>{const ss=getSlips(o);if(ss.length)return renderSlipStack(ss,idx)+(o.resubmitted?'<div style="margin-top:.3rem"><span class="resub-badge">🔄 Resubmitted</span></div>':'');return o.payment_method==='cash'?'<div style="margin-top:.4rem;font-size:.6rem;color:#ccc;font-style:italic">Cash payment — collect on delivery</div>':'<div style="margin-top:.4rem;font-size:.6rem;color:#ccc;font-style:italic">No slip uploaded</div>'})()}</div><div class="of-foot"><span class="sb ${sc}">${sl}</span><div class="of-actions">${act}<button class="oa" style="background:rgba(233,196,74,.1);color:#B8860B" onclick="reportOrd(${idx})">⚠</button><button class="oa" style="background:rgba(33,150,243,.08);color:#1565C0" onclick="copyForRunner(${idx})">📋</button><button class="oa" style="background:rgba(155,34,38,.06);color:var(--danger)" onclick="deleteOrd(${idx})">🗑</button></div></div></div>`;
+        return`<div class="of-card ${cc}"><div class="of-top"><div class="of-queue">${qid}</div><div class="of-time"><div class="of-dot ${e.cls==='fresh'?'of-dot-pulse':''}" style="background:${dc}"></div><span class="of-timer ${e.cls}" data-ts="${o.ts}">${e.txt}</span></div></div><div class="of-body"><div class="of-buyer">${name} ${payBadge}</div><div class="of-meta">${cls} · Room ${room} · ${sl}</div><div class="of-items">${(o.items||[]).map(i=>`<div class="of-it"><span>${i.name}${i.opts&&i.opts.length?` <span class="opt-tag">${i.opts.map(o2=>o2.choice).join(", ")}</span>`:""} ×${i.qty}</span><span>฿${i.price*i.qty}</span></div>`).join('')}</div><div class="of-total"><span>Total</span><span>฿${o.total}</span></div>${rejReason}${delReason}${reportInfo}${notes?`<div style="margin-top:.5rem;padding:.4rem .6rem;background:rgba(95,20,49,.03);border-radius:6px;font-size:.65rem;color:#666">📝 <strong>Notes:</strong> ${notes}</div>`:`<div style="margin-top:.4rem;font-size:.6rem;color:#ccc">Notes: —</div>`}${(()=>{const ss=getSlips(o);if(ss.length)return renderSlipStack(ss,idx)+(o.resubmitted?'<div style="margin-top:.3rem"><span class="resub-badge">🔄 Resubmitted</span></div>':'');return o.payment_method==='cash'?'<div style="margin-top:.4rem;font-size:.6rem;color:#ccc;font-style:italic">Cash payment — collect on delivery</div>':'<div style="margin-top:.4rem;font-size:.6rem;color:#ccc;font-style:italic">No slip uploaded</div>'})()}</div><div class="of-foot"><span class="sb ${sc}">${sl}</span><div class="of-actions">${act}<button class="oa" style="background:rgba(233,196,74,.1);color:#B8860B" onclick="reportOrd(${idx})">⚠</button><button class="oa" style="background:rgba(33,150,243,.08);color:#1565C0" onclick="copyForRunner(${idx})">📋</button><button class="oa" style="background:rgba(155,34,38,.06);color:var(--danger)" onclick="deleteOrd(${idx})">🗑</button></div></div></div>`;
       }).join('');
     }
 
@@ -1355,7 +1467,8 @@
         const isReply=si>0;const lbl=isReply?'Reply #'+si:'Original';
         const cls=isReply?'reply':'original';
         const ts=s2.ts?new Date(s2.ts).toLocaleString():'';
-        return`<div class="slip-entry"><div class="slip-label ${cls}"><span class="slip-tag">${lbl}</span><span class="slip-ts">${ts}</span></div><img src="${s2.data}" style="width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlipImg('${s2.data.replace(/'/g,'')}')">`+(isReply?'':'')+'</div>';
+        const msgHtml=s2.msg?`<div style="font-size:.65rem;color:#555;margin-top:.25rem;padding:.4rem .5rem;background:rgba(95,20,49,.03);border-radius:6px;line-height:1.45">\U0001f4ac ${s2.msg}</div>`:'';
+        return`<div class="slip-entry"><div class="slip-label ${cls}"><span class="slip-tag">${lbl}</span><span class="slip-ts">${ts}</span></div><img src="${s2.data}" style="width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlipImg('${s2.data.replace(/'/g,'')}')">`+msgHtml+'</div>';
       }).join('')+'</div>';
     }
     window.showSlipImg=function(src){document.getElementById('mSlipImg').src=src;document.getElementById('slipMod').classList.add('open')};
@@ -1363,15 +1476,16 @@
       const f=input&&input.files&&input.files[0];if(!f)return;
       if(!f.type.startsWith('image/')){toast('Please choose an image');return}
       if(f.size>5e6){toast('Max 5MB');return}
+      const msg=(document.getElementById('resubMsg'+qnum)||{}).value||'';
       const r=new FileReader();
-      r.onload=async function(ev){await resubmitSlip(qnum,ev.target.result)};
+      r.onload=async function(ev){await resubmitSlip(qnum,ev.target.result,msg)};
       r.readAsDataURL(f);
     };
-    async function resubmitSlip(qnum,newData){
+    async function resubmitSlip(qnum,newData,msg){
       const orders=getOrders();const o=orders.find(x=>x.queue_num===qnum);
       if(!o){toast(t('orderNotFound'));return}
       const existing=getSlips(o);
-      existing.push({data:newData,ts:new Date().toISOString(),label:'Reply'});
+      existing.push({data:newData,ts:new Date().toISOString(),label:'Reply',msg:msg||''});
       o.slips=existing;o.slip=newData;
       o.status='pending';o.resubmitted=true;
       o.reject_reason='';o.report_reason='';o.reported=false;
@@ -1387,9 +1501,9 @@
     window.resubmitOrder=function(qnum){
       isResend=true;
       const orders=getOrders();const o=orders.find(x=>x.queue_num===qnum);if(!o){toast(t('orderNotFound'));return}
-      cart={};stockMap=getStock();
-      (o.items||[]).forEach(i=>{const stk=stockMap[i.id]??0;const want=Math.min(i.qty,stk);if(want>0)cart[i.id]=want});
-      if(!Object.keys(cart).length){toast(lang==='th'?'สินค้าหมดแล้ว':'Those items are sold out now');return}
+      cart={};cartMeta={};stockMap=getStock();
+      (o.items||[]).forEach(i=>{const stk=stockMap[i.id]??0;const want=Math.min(i.qty,stk);if(want>0){const k=cartKey(i.id,i.opts||[]);cart[k]=(cart[k]||0)+want;if(i.opts&&i.opts.length)cartMeta[k]={id:i.id,picks:i.opts}}});
+      if(!Object.keys(cart).length){toast(lang==='th'?'\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e2b\u0e21\u0e14\u0e41\u0e25\u0e49\u0e27':'Those items are sold out now');return}
       bump();switchPage('shop');
       setTimeout(()=>{openCo();
         document.getElementById('coName').value=o.buyer?.name||'';
@@ -1423,7 +1537,7 @@
     window.closeMenu=function(){document.getElementById('menuMod').classList.remove('open')};
     function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
     function renderMenuEditor(){
-      document.getElementById('menuList').innerHTML=menuDraft.map((p,i)=>`<div class="me-row"><div class="me-img"><div class="me-thumb">${p.img?`<img src="${esc(p.img)}">`:'<span>No<br>photo</span>'}</div><div class="me-imgbtns"><label class="me-up">⬆ Upload photo<input type="file" accept="image/*" onchange="mPick(${i},this)" hidden></label>${p.img?`<button type="button" class="me-rmimg" onclick="mClearImg(${i})">Remove</button>`:''}<input class="me-url" placeholder="…or paste an image URL" value="${esc(p.img&&/^https?:/.test(p.img)?p.img:'')}" onchange="mUrl(${i},this.value)"></div></div><div class="me-grid"><label>Name (EN)<input value="${esc(p.name)}" oninput="mEdit(${i},'name',this.value)"></label><label>ชื่อ (TH)<input value="${esc(p.name_th)}" oninput="mEdit(${i},'name_th',this.value)"></label><label>Desc (EN)<input value="${esc(p.desc)}" oninput="mEdit(${i},'desc',this.value)"></label><label>รายละเอียด (TH)<input value="${esc(p.desc_th)}" oninput="mEdit(${i},'desc_th',this.value)"></label><label>Shop<input value="${esc(p.cat)}" oninput="mEdit(${i},'cat',this.value)"></label><label>Group (Food/Drinks)<input value="${esc(p.group)}" oninput="mEdit(${i},'group',this.value)"></label><label>Badge<input value="${esc(p.badge)}" oninput="mEdit(${i},'badge',this.value)"></label><label>Price ฿<input type="number" min="0" value="${p.price||0}" oninput="mEdit(${i},'price',+this.value)"></label><label>Stock<input type="number" min="0" value="${p.stock||0}" oninput="mEdit(${i},'stock',+this.value)"></label></div><button class="me-del" onclick="delMenuRow(${i})">✕ Delete</button></div>`).join('');
+      document.getElementById('menuList').innerHTML=menuDraft.map((p,i)=>`<div class="me-row"><div class="me-img"><div class="me-thumb">${p.img?`<img src="${esc(p.img)}">`:'<span>No<br>photo</span>'}</div><div class="me-imgbtns"><label class="me-up">⬆ Upload photo<input type="file" accept="image/*" onchange="mPick(${i},this)" hidden></label>${p.img?`<button type="button" class="me-rmimg" onclick="mClearImg(${i})">Remove</button>`:''}<input class="me-url" placeholder="…or paste an image URL" value="${esc(p.img&&/^https?:/.test(p.img)?p.img:'')}" onchange="mUrl(${i},this.value)"></div></div><div class="me-grid"><label>Name (EN)<input value="${esc(p.name)}" oninput="mEdit(${i},'name',this.value)"></label><label>ชื่อ (TH)<input value="${esc(p.name_th)}" oninput="mEdit(${i},'name_th',this.value)"></label><label>Desc (EN)<input value="${esc(p.desc)}" oninput="mEdit(${i},'desc',this.value)"></label><label>รายละเอียด (TH)<input value="${esc(p.desc_th)}" oninput="mEdit(${i},'desc_th',this.value)"></label><label>Shop<input value="${esc(p.cat)}" oninput="mEdit(${i},'cat',this.value)"></label><label>Group (Food/Drinks)<input value="${esc(p.group)}" oninput="mEdit(${i},'group',this.value)"></label><label>Badge<input value="${esc(p.badge)}" oninput="mEdit(${i},'badge',this.value)"></label><label>Price ฿<input type="number" min="0" value="${p.price||0}" oninput="mEdit(${i},'price',+this.value)"></label><label>Stock<input type="number" min="0" value="${p.stock||0}" oninput="mEdit(${i},'stock',+this.value)"></label></div><button class="me-del" onclick="delMenuRow(${i})">\u2715 Delete</button><details class="me-opts"><summary>\u2699 Options / Add-ons</summary><div id="meOpts${i}">${renderMenuOpts(p,i)}</div><button type="button" onclick="addOptGroup(${i})" style="margin-top:.4rem;background:none;border:1px dashed var(--m);color:var(--m);border-radius:4px;padding:.3rem .6rem;font-size:.6rem;font-weight:700;cursor:pointer">+ Add Option Group</button></details></div>`).join('');
     }
     window.mEdit=function(i,k,v){if(menuDraft[i])menuDraft[i][k]=v};
     function compressImg(file,cb){const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{let w=img.width,h=img.height;const max=480;if(w>h&&w>max){h=Math.round(h*max/w);w=max}else if(h>=w&&h>max){w=Math.round(w*max/h);h=max}try{const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',0.72))}catch(err){cb(e.target.result)}};img.onerror=()=>toast('Could not read that image');img.src=e.target.result};r.readAsDataURL(file)}
@@ -1431,7 +1545,24 @@
     window.mClearImg=function(i){if(menuDraft[i]){menuDraft[i].img='';renderMenuEditor()}};
     window.mUrl=function(i,v){if(menuDraft[i]){menuDraft[i].img=(v||'').trim();renderMenuEditor()}};
     window.delMenuRow=function(i){menuDraft.splice(i,1);renderMenuEditor()};
-    window.addMenuRow=function(){menuDraft.push({id:'item-'+Date.now().toString(36),cat:'Snacks',group:'Food',name:'New Item',name_th:'',desc:'',desc_th:'',price:0,badge:'',img:'',stock:0});renderMenuEditor();const list=document.getElementById('menuList');list.scrollTop=list.scrollHeight};
+    function renderMenuOpts(p,pi){
+      if(!p.options||!p.options.length)return'<div style="font-size:.58rem;color:#bbb;padding:.3rem">No options yet</div>';
+      return p.options.map((g,gi)=>{
+        let h='<div class="me-opt-grp"><div class="me-opt-grp-hd"><input value="'+esc(g.label)+'" placeholder="Group name" oninput="mEditOpt('+pi+','+gi+',\'label\',this.value)"><label><input type="checkbox" '+(g.required?'checked':'')+' onchange="mEditOpt('+pi+','+gi+',\'required\',this.checked)"> Req</label><button onclick="delOptGroup('+pi+','+gi+')" style="background:none;border:none;color:var(--danger);font-weight:700;cursor:pointer;font-size:.75rem">\u2715</button></div>';
+        (g.choices||[]).forEach((c,ci)=>{
+          h+='<div class="me-choice"><input value="'+esc(c.name)+'" placeholder="Choice name" oninput="mEditChoice('+pi+','+gi+','+ci+',\'name\',this.value)"><input type="number" value="'+(c.extra||0)+'" placeholder="+\u0e3f" style="width:55px" oninput="mEditChoice('+pi+','+gi+','+ci+',\'extra\',+this.value)"><button onclick="delChoice('+pi+','+gi+','+ci+')" style="background:none;border:none;color:#ccc;cursor:pointer">\u2715</button></div>';
+        });
+        h+='<button onclick="addChoice('+pi+','+gi+')" style="margin-top:.3rem;background:none;border:none;color:var(--m);font-size:.6rem;font-weight:700;cursor:pointer">+ Add Choice</button></div>';
+        return h;
+      }).join('');
+    }
+    window.mEditOpt=function(pi,gi,k,v){if(menuDraft[pi]&&menuDraft[pi].options&&menuDraft[pi].options[gi])menuDraft[pi].options[gi][k]=v};
+    window.mEditChoice=function(pi,gi,ci,k,v){if(menuDraft[pi]?.options?.[gi]?.choices?.[ci])menuDraft[pi].options[gi].choices[ci][k]=v};
+    window.addOptGroup=function(pi){if(!menuDraft[pi])return;if(!menuDraft[pi].options)menuDraft[pi].options=[];menuDraft[pi].options.push({label:'Option',label_th:'',required:false,choices:[{name:'Choice 1',name_th:'',extra:0}]});renderMenuEditor()};
+    window.delOptGroup=function(pi,gi){menuDraft[pi]?.options?.splice(gi,1);renderMenuEditor()};
+    window.addChoice=function(pi,gi){menuDraft[pi]?.options?.[gi]?.choices?.push({name:'',name_th:'',extra:0});renderMenuEditor()};
+    window.delChoice=function(pi,gi,ci){menuDraft[pi]?.options?.[gi]?.choices?.splice(ci,1);renderMenuEditor()};
+    window.addMenuRow=function(){menuDraft.push({id:'item-'+Date.now().toString(36),cat:'Snacks',group:'Food',name:'New Item',name_th:'',desc:'',desc_th:'',price:0,badge:'',img:'',stock:0,options:[]});renderMenuEditor();const list=document.getElementById('menuList');list.scrollTop=list.scrollHeight};
     window.saveMenu=async function(){
       for(const p of menuDraft){if(!p.name||!p.name.trim()){toast('Every item needs a name');return}}
       const seen=new Set();
@@ -1440,7 +1571,7 @@
       toast(res==='cloud'?'Menu saved & synced ✓':res==='local'?'Menu saved on this device ✓':'Saved here — cloud sync failed; run the catalog SQL');
     };
     async function saveCatalog(arr){
-      products=arr.map(p=>({id:p.id,cat:p.cat||'Other',group:(p.group==='Drinks'?'Drinks':'Food'),name:p.name,name_th:p.name_th||'',desc:p.desc||'',desc_th:p.desc_th||'',price:+p.price||0,badge:p.badge||'',img:p.img||'',stock:+p.stock||0}));
+      products=arr.map(p=>({id:p.id,cat:p.cat||'Other',group:(p.group==='Drinks'?'Drinks':'Food'),name:p.name,name_th:p.name_th||'',desc:p.desc||'',desc_th:p.desc_th||'',price:+p.price||0,badge:p.badge||'',img:p.img||'',stock:+p.stock||0,options:p.options||[]}));
       catalogTS=Date.now();
       localStorage.setItem(CAT_KEY,JSON.stringify({ts:catalogTS,products}));
       const st=getStock();products.forEach(p=>{if(st[p.id]==null)st[p.id]=p.stock});localStorage.setItem(STOCK_KEY,JSON.stringify(st));stockMap=st;
@@ -1502,6 +1633,8 @@
     // inject config-driven text
     {const cp=document.getElementById('contactPhone');if(cp)cp.textContent=CONTACT_PHONE;
      const pn=document.getElementById('ppName');if(pn)pn.textContent=PROMPTPAY_NAME;}
+    // init notification baselines
+    {const mi=JSON.parse(localStorage.getItem('jfs_myorders')||'[]');const ords=getOrders();mi.forEach(qn=>{const o=ords.find(x=>x.queue_num===qn);if(o)prevMyStatuses[qn]=o.status});const bell=document.getElementById('notifBell');if(mi.length&&bell)bell.style.display=''}
     applyLang();
     initSupabase().then(()=>{stockMap=getStock();renderGrid()});
     // Live updates for customers (track + shop) without manual refresh
@@ -1510,6 +1643,7 @@
       const onTrack=tp&&tp.classList.contains('active'),onShop=sp&&sp.classList.contains('active');
       if(!onTrack&&!onShop)return;
       if(useSB){try{await syncFromSupabase()}catch(e){}}
+      checkOrderNotifs();
       if(onTrack){renderMyOrders();if(lastTrack!=null){const o=getOrders().find(x=>x.queue_num===lastTrack);if(o)document.getElementById('trackResult').innerHTML=trackCardHTML(o)}}
       else if(onShop&&!document.getElementById('coOv').classList.contains('open')){renderGrid()}
     },6000);
