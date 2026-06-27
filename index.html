@@ -76,6 +76,10 @@
     .ann-ctrl{display:flex;gap:.4rem;margin-bottom:.8rem;align-items:center}
     .ann-ctrl input{flex:1;padding:.45rem .6rem;border:1.5px solid rgba(95,20,49,.14);border-radius:6px;font-family:'Inter',sans-serif;font-size:.74rem}
     .ann-ctrl button{padding:.45rem .7rem;border-radius:6px;font-family:'Inter',sans-serif;font-weight:700;font-size:.68rem;cursor:pointer;white-space:nowrap;border:none}
+    .avail-bar{display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.8rem}
+    .avail-pill{padding:.35rem .65rem;border-radius:100px;font-family:'Inter','Noto Sans Thai',sans-serif;font-size:.62rem;font-weight:700;cursor:pointer;border:1.5px solid rgba(95,20,49,.15);background:#fff;color:var(--m);transition:.2s;user-select:none}
+    .avail-pill.on{background:var(--success);color:#fff;border-color:var(--success)}
+    .avail-pill.off{background:rgba(155,34,38,.06);color:var(--danger);border-color:rgba(155,34,38,.15);text-decoration:line-through;opacity:.6}
     .sr-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem}
     .sr-card{background:#faf7f3;border-radius:10px;padding:.8rem;text-align:center}
     .sr-card .sr-num{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900;color:var(--m)}
@@ -477,6 +481,7 @@
           <button onclick="setAnnounce()" style="background:var(--warn-bg);color:#8a6d20">📢 Set</button>
           <button onclick="clearAnnounce()" style="background:rgba(155,34,38,.08);color:var(--danger)">Clear</button>
         </div>
+        <div class="avail-bar reveal" id="availBar"></div>
         <div class="adm-stats reveal">
           <div class="st-card"><div class="st-num" id="sT">0</div><div class="st-lbl">Total</div></div>
           <div class="st-card"><div class="st-num" id="sP">0</div><div class="st-lbl">Received</div></div>
@@ -663,7 +668,7 @@
     const PROMPTPAY_NAME = 'Class Treasurer';   // ← name shown above the QR
     const CONTACT_PHONE  = '0XX-XXX-XXXX';      // ← help line shown to buyers
     const STORE_KEY='jfs_orders';
-    const STOCK_KEY='jfs_stock';
+    // Stock system removed — availability is per-product toggle
     const MY_KEY='jfs_my_orders';
 
     const DEFAULT_PRODUCTS=[
@@ -729,16 +734,9 @@
           }));
           localStorage.setItem(STORE_KEY,JSON.stringify(orders));
         }
-        // Sync stock
-        const{data:stockData}=await sb.from('stock').select('*');
-        if(stockData){
-          const s={};
-          stockData.forEach(r=>{
-            if(r.product_id==='_shop_status'){localStorage.setItem('jfs_shop_open',r.quantity>0?'true':'false')}
-            else{s[r.product_id]=r.quantity}
-          });
-          localStorage.setItem(STOCK_KEY,JSON.stringify(s));
-        }
+        // Sync shop open/close status
+        try{const{data:ss}=await sb.from('stock').select('*').eq('product_id','_shop_status').limit(1);
+          if(ss&&ss[0])localStorage.setItem('jfs_shop_open',ss[0].quantity>0?'true':'false')}catch(e){}
         // Sync catalog (menu edits) — gracefully ignored if table doesn't exist
         try{const{data:cat}=await sb.from('catalog').select('*').eq('id','main').limit(1);
           if(cat&&cat[0]&&Array.isArray(cat[0].products)&&cat[0].products.length){
@@ -767,7 +765,7 @@
           order.queue_num=data.queue_num;
           order.id='JFS-'+String(data.queue_num).padStart(3,'0');
           for(const item of order.items){
-            await sb.rpc('decrement_stock',{pid:item.id,qty:item.qty}).catch(e=>console.warn('Stock:',e));
+            // stock decrement removed — admin toggles availability
           }
         }
       }catch(e){console.error('❌ pushNewOrder:',e)}
@@ -802,12 +800,7 @@
       return o;
     }
     function saveOrders(arr){localStorage.setItem(STORE_KEY,JSON.stringify(arr))}
-    function getStock(){
-      let s=JSON.parse(localStorage.getItem(STOCK_KEY)||'null');
-      if(!s){s={};products.forEach(p=>s[p.id]=p.stock);localStorage.setItem(STOCK_KEY,JSON.stringify(s))}
-      return s;
-    }
-    function saveStock(){localStorage.setItem(STOCK_KEY,JSON.stringify(stockMap))}
+    function isAvail(id){const p=products.find(x=>x.id===id);return p?p.available!==false:true}
     function getMyOrders(){return JSON.parse(localStorage.getItem(MY_KEY)||'[]')}
     function saveMyOrder(id,qn){const m=getMyOrders();m.push({id,queue_num:qn});localStorage.setItem(MY_KEY,JSON.stringify(m))}
 
@@ -895,17 +888,17 @@
 
     // ═══════ PRODUCT GRID ═══════
     function renderGrid(){
-      stockMap=getStock();
+      // availability from products
       const list=activeCat==='All'?products:(activeCat==='Food'||activeCat==='Drinks')?products.filter(p=>(p.group||p.cat)===activeCat):products.filter(p=>p.cat===activeCat);
       document.getElementById('productGrid').innerHTML=list.map(p=>{
-        const q=cartQtyForProduct(p.id),stk=stockMap[p.id]??p.stock,out=stk<=0,low=stk>0&&stk<=10;
-        return`<div class="card${out?' sold-out':''}"><div class="card-img">${p.img?`<img src="${p.img}">`:`<div class="ph">${ph}</div>`}${out?`<div class="card-badge out">${t('soldOut')}</div>`:p.badge?`<div class="card-badge">${p.badge}</div>`:''}</div><div class="card-body"><div class="card-name">${pname(p)}</div><div class="card-desc">${pdesc(p)}</div><div class="card-stock${low?' low':''}">${out?t('outStock'):stk<=20?stk+' '+t('left'):''}</div><div class="card-bottom"><div class="card-price">฿${p.price}</div>${out?'':q===0?`<button class="card-add" onclick="addItem('${p.id}')" title="${p.options&&p.options.length?'Choose options':'Add to cart'}"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`:`<div class="qty-step"><button class="qty-btn" onclick="chgQty('${p.id}',-1)">−</button><div class="qty-val">${q}</div><button class="qty-btn" onclick="chgQty('${p.id}',1)">+</button></div>`}</div></div></div>`;
+        const q=cartQtyForProduct(p.id),out=p.available===false;
+        return`<div class="card${out?' sold-out':''}"><div class="card-img">${p.img?`<img src="${p.img}">`:`<div class="ph">${ph}</div>`}${out?`<div class="card-badge out">${t('soldOut')}</div>`:p.badge?`<div class="card-badge">${p.badge}</div>`:''}</div><div class="card-body"><div class="card-name">${pname(p)}</div><div class="card-desc">${pdesc(p)}</div><div class="card-stock">${out?t('outStock'):''}</div><div class="card-bottom"><div class="card-price">฿${p.price}</div>${out?'':q===0?`<button class="card-add" onclick="addItem('${p.id}')" title="${p.options&&p.options.length?'Choose options':'Add to cart'}"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>`:`<div class="qty-step"><button class="qty-btn" onclick="chgQty('${p.id}',-1)">−</button><div class="qty-val">${q}</div><button class="qty-btn" onclick="chgQty('${p.id}',1)">+</button></div>`}</div></div></div>`;
       }).join('');
     }
 
     // ═══════ CART ═══════
-    window.addItem=function(id){if(!isShopOpen()){toast(t('shopClosed'));return}const p=products.find(x=>x.id===id);if(!p)return;if(p.options&&p.options.length){openOptPicker(id);return}const stk=stockMap[id]??0;if(cartQtyForProduct(id)>=stk){toast(t('notEnough'));return}cart[id]=(cart[id]||0)+1;toast(pname(p)+' '+t('addedToBasket'));bump();renderGrid();renderDrw()};
-    window.chgQty=function(k,d){const n=(cart[k]||0)+d;const bid=cartBaseId(k);const stk=stockMap[bid]??0;const othersQty=cartQtyForProduct(bid)-(cart[k]||0);if(n+othersQty>stk){toast(t('notEnough'));return}if(n<=0){delete cart[k];delete cartMeta[k]}else cart[k]=n;bump();renderGrid();renderDrw()};
+    window.addItem=function(id){if(!isShopOpen()){toast(t('shopClosed'));return}const p=products.find(x=>x.id===id);if(!p)return;if(p.available===false){toast(t('outStock'));return}if(p.options&&p.options.length){openOptPicker(id);return}if(cartQtyForProduct(id)>=20){toast(t('notEnough'));return}cart[id]=(cart[id]||0)+1;toast(pname(p)+' '+t('addedToBasket'));bump();renderGrid();renderDrw()};
+    window.chgQty=function(k,d){const n=(cart[k]||0)+d;if(n>20){toast(t('notEnough'));return}if(n<=0){delete cart[k];delete cartMeta[k]}else cart[k]=n;bump();renderGrid();renderDrw()};
     function cCount(){return Object.values(cart).reduce((s,q)=>s+q,0)}
     function cTotal(){return Object.entries(cart).reduce((s2,[k,q])=>{const p=products.find(x=>x.id===cartBaseId(k));return s2+(p?(p.price+cartExtraPerUnit(k))*q:0)},0)}
     function bump(){const b=document.getElementById('cBadge'),n=cCount();if(n>0){b.style.display='flex';b.textContent=n;b.classList.remove('bump');void b.offsetWidth;b.classList.add('bump')}else b.style.display='none'}
@@ -984,7 +977,7 @@
         // Save locally
         orders.push(order);saveOrders(orders);
         // Decrement local stock
-        order.items.forEach(i=>{stockMap[i.id]=Math.max(0,(stockMap[i.id]||0)-i.qty)});saveStock();
+        // no stock decrement — availability is toggled manually by admin
         saveMyOrder(order.id,order.queue_num);
         localStorage.setItem('jfs_last_order',String(Date.now())); // cooldown
         // Reset form
@@ -1128,7 +1121,7 @@
       const p=products.find(x=>x.id===optProduct);if(!p)return;
       const extra=optPicks.reduce((s2,pk)=>s2+(pk.extra||0),0);
       const validPicks=optPicks.filter(pk=>pk.choice);
-      const stk=stockMap[p.id]??p.stock;const inCart=cartQtyForProduct(p.id);const canAdd=inCart<stk;
+      const canAdd=p.available!==false&&cartQtyForProduct(p.id)<20;
       let h=`<div class="opt-name">${pname(p)}</div><div class="opt-base">${pdesc(p)}</div>`;
       (p.options||[]).forEach((g,gi)=>{
         const lbl=(lang==='th'&&g.label_th)?g.label_th:g.label;
@@ -1146,8 +1139,7 @@
       const p=products.find(x=>x.id===optProduct);if(!p)return;
       const picks=optPicks.filter(pk=>pk.choice);
       const k=cartKey(p.id,picks);
-      const stk=stockMap[p.id]??0;
-      if(cartQtyForProduct(p.id)>=stk){toast(t('notEnough'));return}
+      if(p.available===false||cartQtyForProduct(p.id)>=20){toast(t('notEnough'));return}
       cart[k]=(cart[k]||0)+1;
       if(picks.length)cartMeta[k]={id:p.id,picks:picks};
       closeOptPicker();toast(pname(p)+' '+t('addedToBasket'));bump();renderGrid();renderDrw();
@@ -1263,6 +1255,15 @@
       if(!confirmed.length)h+='<div style="text-align:center;color:#aaa;padding:2rem;font-size:.8rem">No confirmed orders yet. Revenue appears once orders move past \u201cpending.\u201d</div>';
       document.getElementById('srBody').innerHTML=h;
     }
+    window.toggleAvail=async function(id){
+      const p=products.find(x=>x.id===id);if(!p)return;
+      p.available=p.available===false?true:false;
+      catalogTS=Date.now();
+      localStorage.setItem(CAT_KEY,JSON.stringify({ts:catalogTS,products}));
+      renderGrid();renderAdm();
+      if(useSB&&sb){try{await sb.from('catalog').upsert({id:'main',products:products,updated_at:new Date(catalogTS).toISOString()})}catch(e){console.warn('avail sync:',e)}}
+      toast(pname(p)+' '+(p.available?'✓ available':'✗ sold out'));
+    };
     window.admLogout=async function(){
       if(useSB&&sb){try{await sb.auth.signOut()}catch(e){}}
       admLoggedIn=false;sessionStorage.removeItem('jfs_admin');
@@ -1299,6 +1300,7 @@
       const vt=document.getElementById('viewToggleBtn');if(vt){vt.textContent=isRunner?'🍳 Kitchen View':'🛵 Runner View'}
       const stEl=document.querySelector('.adm-stats');if(stEl)stEl.style.display=isRunner?'none':'';
       const annCtrl=document.getElementById('annCtrl');if(annCtrl)annCtrl.style.display=isRunner?'none':'';
+      const availBar=document.getElementById('availBar');if(availBar){availBar.style.display=isRunner?'none':'';availBar.innerHTML=products.map(p=>`<button class="avail-pill ${p.available!==false?'on':'off'}" onclick="toggleAvail('${p.id}')">${pname(p)}</button>`).join('')}
       document.getElementById('admTabs').style.display=isRunner?'none':'';
       document.getElementById('orderFeed').style.display=isRunner?'none':'';
       document.getElementById('runnerFeed').style.display=isRunner?'block':'none';
@@ -1448,8 +1450,8 @@
         }catch(e){console.warn('Supabase clear failed:',e)}
       }
       // Clear localStorage
-      localStorage.removeItem(STORE_KEY);localStorage.removeItem(MY_KEY);localStorage.removeItem(STOCK_KEY);
-      stockMap={};products.forEach(p=>stockMap[p.id]=p.stock);
+      localStorage.removeItem(STORE_KEY);localStorage.removeItem(MY_KEY);
+      // availability stays as-is (admin toggles individually)
       renderAdm();renderGrid();toast('All orders cleared');
     };
 
@@ -1501,8 +1503,8 @@
     window.resubmitOrder=function(qnum){
       isResend=true;
       const orders=getOrders();const o=orders.find(x=>x.queue_num===qnum);if(!o){toast(t('orderNotFound'));return}
-      cart={};cartMeta={};stockMap=getStock();
-      (o.items||[]).forEach(i=>{const stk=stockMap[i.id]??0;const want=Math.min(i.qty,stk);if(want>0){const k=cartKey(i.id,i.opts||[]);cart[k]=(cart[k]||0)+want;if(i.opts&&i.opts.length)cartMeta[k]={id:i.id,picks:i.opts}}});
+      cart={};cartMeta={};
+      (o.items||[]).forEach(i=>{if(!isAvail(i.id))return;const k=cartKey(i.id,i.opts||[]);cart[k]=(cart[k]||0)+i.qty;if(i.opts&&i.opts.length)cartMeta[k]={id:i.id,picks:i.opts}});
       if(!Object.keys(cart).length){toast(lang==='th'?'\u0e2a\u0e34\u0e19\u0e04\u0e49\u0e32\u0e2b\u0e21\u0e14\u0e41\u0e25\u0e49\u0e27':'Those items are sold out now');return}
       bump();switchPage('shop');
       setTimeout(()=>{openCo();
@@ -1537,7 +1539,7 @@
     window.closeMenu=function(){document.getElementById('menuMod').classList.remove('open')};
     function esc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
     function renderMenuEditor(){
-      document.getElementById('menuList').innerHTML=menuDraft.map((p,i)=>`<div class="me-row"><div class="me-img"><div class="me-thumb">${p.img?`<img src="${esc(p.img)}">`:'<span>No<br>photo</span>'}</div><div class="me-imgbtns"><label class="me-up">⬆ Upload photo<input type="file" accept="image/*" onchange="mPick(${i},this)" hidden></label>${p.img?`<button type="button" class="me-rmimg" onclick="mClearImg(${i})">Remove</button>`:''}<input class="me-url" placeholder="…or paste an image URL" value="${esc(p.img&&/^https?:/.test(p.img)?p.img:'')}" onchange="mUrl(${i},this.value)"></div></div><div class="me-grid"><label>Name (EN)<input value="${esc(p.name)}" oninput="mEdit(${i},'name',this.value)"></label><label>ชื่อ (TH)<input value="${esc(p.name_th)}" oninput="mEdit(${i},'name_th',this.value)"></label><label>Desc (EN)<input value="${esc(p.desc)}" oninput="mEdit(${i},'desc',this.value)"></label><label>รายละเอียด (TH)<input value="${esc(p.desc_th)}" oninput="mEdit(${i},'desc_th',this.value)"></label><label>Shop<input value="${esc(p.cat)}" oninput="mEdit(${i},'cat',this.value)"></label><label>Group (Food/Drinks)<input value="${esc(p.group)}" oninput="mEdit(${i},'group',this.value)"></label><label>Badge<input value="${esc(p.badge)}" oninput="mEdit(${i},'badge',this.value)"></label><label>Price ฿<input type="number" min="0" value="${p.price||0}" oninput="mEdit(${i},'price',+this.value)"></label><label>Stock<input type="number" min="0" value="${p.stock||0}" oninput="mEdit(${i},'stock',+this.value)"></label></div><button class="me-del" onclick="delMenuRow(${i})">\u2715 Delete</button><details class="me-opts"><summary>\u2699 Options / Add-ons</summary><div id="meOpts${i}">${renderMenuOpts(p,i)}</div><button type="button" onclick="addOptGroup(${i})" style="margin-top:.4rem;background:none;border:1px dashed var(--m);color:var(--m);border-radius:4px;padding:.3rem .6rem;font-size:.6rem;font-weight:700;cursor:pointer">+ Add Option Group</button></details></div>`).join('');
+      document.getElementById('menuList').innerHTML=menuDraft.map((p,i)=>`<div class="me-row"><div class="me-img"><div class="me-thumb">${p.img?`<img src="${esc(p.img)}">`:'<span>No<br>photo</span>'}</div><div class="me-imgbtns"><label class="me-up">⬆ Upload photo<input type="file" accept="image/*" onchange="mPick(${i},this)" hidden></label>${p.img?`<button type="button" class="me-rmimg" onclick="mClearImg(${i})">Remove</button>`:''}<input class="me-url" placeholder="…or paste an image URL" value="${esc(p.img&&/^https?:/.test(p.img)?p.img:'')}" onchange="mUrl(${i},this.value)"></div></div><div class="me-grid"><label>Name (EN)<input value="${esc(p.name)}" oninput="mEdit(${i},'name',this.value)"></label><label>ชื่อ (TH)<input value="${esc(p.name_th)}" oninput="mEdit(${i},'name_th',this.value)"></label><label>Desc (EN)<input value="${esc(p.desc)}" oninput="mEdit(${i},'desc',this.value)"></label><label>รายละเอียด (TH)<input value="${esc(p.desc_th)}" oninput="mEdit(${i},'desc_th',this.value)"></label><label>Shop<input value="${esc(p.cat)}" oninput="mEdit(${i},'cat',this.value)"></label><label>Group (Food/Drinks)<input value="${esc(p.group)}" oninput="mEdit(${i},'group',this.value)"></label><label>Badge<input value="${esc(p.badge)}" oninput="mEdit(${i},'badge',this.value)"></label><label>Price ฿<input type="number" min="0" value="${p.price||0}" oninput="mEdit(${i},'price',+this.value)"></label><label style="flex-direction:row;align-items:center;gap:.3rem"><input type="checkbox" ${p.available!==false?'checked':''} onchange="mEdit(${i},'available',this.checked)"> Available</label></div><button class="me-del" onclick="delMenuRow(${i})">\u2715 Delete</button><details class="me-opts"><summary>\u2699 Options / Add-ons</summary><div id="meOpts${i}">${renderMenuOpts(p,i)}</div><button type="button" onclick="addOptGroup(${i})" style="margin-top:.4rem;background:none;border:1px dashed var(--m);color:var(--m);border-radius:4px;padding:.3rem .6rem;font-size:.6rem;font-weight:700;cursor:pointer">+ Add Option Group</button></details></div>`).join('');
     }
     window.mEdit=function(i,k,v){if(menuDraft[i])menuDraft[i][k]=v};
     function compressImg(file,cb){const r=new FileReader();r.onload=e=>{const img=new Image();img.onload=()=>{let w=img.width,h=img.height;const max=480;if(w>h&&w>max){h=Math.round(h*max/w);w=max}else if(h>=w&&h>max){w=Math.round(w*max/h);h=max}try{const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);cb(c.toDataURL('image/jpeg',0.72))}catch(err){cb(e.target.result)}};img.onerror=()=>toast('Could not read that image');img.src=e.target.result};r.readAsDataURL(file)}
@@ -1562,7 +1564,7 @@
     window.delOptGroup=function(pi,gi){menuDraft[pi]?.options?.splice(gi,1);renderMenuEditor()};
     window.addChoice=function(pi,gi){menuDraft[pi]?.options?.[gi]?.choices?.push({name:'',name_th:'',extra:0});renderMenuEditor()};
     window.delChoice=function(pi,gi,ci){menuDraft[pi]?.options?.[gi]?.choices?.splice(ci,1);renderMenuEditor()};
-    window.addMenuRow=function(){menuDraft.push({id:'item-'+Date.now().toString(36),cat:'Snacks',group:'Food',name:'New Item',name_th:'',desc:'',desc_th:'',price:0,badge:'',img:'',stock:0,options:[]});renderMenuEditor();const list=document.getElementById('menuList');list.scrollTop=list.scrollHeight};
+    window.addMenuRow=function(){menuDraft.push({id:'item-'+Date.now().toString(36),cat:'Snacks',group:'Food',name:'New Item',name_th:'',desc:'',desc_th:'',price:0,badge:'',img:'',available:true,options:[]});renderMenuEditor();const list=document.getElementById('menuList');list.scrollTop=list.scrollHeight};
     window.saveMenu=async function(){
       for(const p of menuDraft){if(!p.name||!p.name.trim()){toast('Every item needs a name');return}}
       const seen=new Set();
@@ -1571,17 +1573,17 @@
       toast(res==='cloud'?'Menu saved & synced ✓':res==='local'?'Menu saved on this device ✓':'Saved here — cloud sync failed; run the catalog SQL');
     };
     async function saveCatalog(arr){
-      products=arr.map(p=>({id:p.id,cat:p.cat||'Other',group:(p.group==='Drinks'?'Drinks':'Food'),name:p.name,name_th:p.name_th||'',desc:p.desc||'',desc_th:p.desc_th||'',price:+p.price||0,badge:p.badge||'',img:p.img||'',stock:+p.stock||0,options:p.options||[]}));
+      products=arr.map(p=>({id:p.id,cat:p.cat||'Other',group:(p.group==='Drinks'?'Drinks':'Food'),name:p.name,name_th:p.name_th||'',desc:p.desc||'',desc_th:p.desc_th||'',price:+p.price||0,badge:p.badge||'',img:p.img||'',available:p.available!==false,options:p.options||[]}));
       catalogTS=Date.now();
       localStorage.setItem(CAT_KEY,JSON.stringify({ts:catalogTS,products}));
-      const st=getStock();products.forEach(p=>{if(st[p.id]==null)st[p.id]=p.stock});localStorage.setItem(STOCK_KEY,JSON.stringify(st));stockMap=st;
+      // availability syncs through catalog (p.available field)
       activeCat='All';renderCats();renderGrid();if(admLoggedIn)renderAdm();
       let cloud='local';
       if(useSB&&sb){
         try{
           const{error}=await sb.from('catalog').upsert({id:'main',products:products,updated_at:new Date(catalogTS).toISOString()});
           if(error)throw error;
-          products.forEach(p=>{sb.from('stock').upsert({product_id:p.id,quantity:st[p.id]}).then(()=>{}).catch(()=>{})});
+          // stock upserts removed — availability in catalog
           cloud='cloud';
         }catch(e){console.warn('catalog sync failed:',e.message||e);cloud='fail'}
       }
@@ -1629,14 +1631,14 @@
     function toast(msg){const box=document.getElementById('toastBox');const el=document.createElement('div');el.className='t-msg';el.textContent=msg;box.appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},2500)}
 
     // Init
-    stockMap=getStock();
+    // availability from products (no stock map)
     // inject config-driven text
     {const cp=document.getElementById('contactPhone');if(cp)cp.textContent=CONTACT_PHONE;
      const pn=document.getElementById('ppName');if(pn)pn.textContent=PROMPTPAY_NAME;}
     // init notification baselines
     {const mi=JSON.parse(localStorage.getItem('jfs_myorders')||'[]');const ords=getOrders();mi.forEach(qn=>{const o=ords.find(x=>x.queue_num===qn);if(o)prevMyStatuses[qn]=o.status});const bell=document.getElementById('notifBell');if(mi.length&&bell)bell.style.display=''}
     applyLang();
-    initSupabase().then(()=>{stockMap=getStock();renderGrid()});
+    initSupabase().then(()=>{renderGrid()});
     // Live updates for customers (track + shop) without manual refresh
     setInterval(async()=>{
       const tp=document.getElementById('page-track'),sp=document.getElementById('page-shop');
