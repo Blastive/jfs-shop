@@ -747,7 +747,8 @@
             report_reason:r.report_reason||'',reported:!!r.reported,
             _sb_id:r.id // keep Supabase UUID for updates
           }));
-          localStorage.setItem(STORE_KEY,JSON.stringify(orders));
+          _ordersCache=orders;
+          try{localStorage.setItem(STORE_KEY,JSON.stringify(stripForStorage(orders)))}catch(e){console.warn('Storage quota — clearing and retrying');try{localStorage.removeItem(STORE_KEY);localStorage.setItem(STORE_KEY,JSON.stringify(stripForStorage(orders)))}catch(e2){}}
         }
         // Sync shop open/close status
         try{const{data:ss}=await sb.from('stock').select('*').eq('product_id','_shop_status').limit(1);
@@ -809,7 +810,15 @@
     }
 
     // Local storage functions (used as fast cache)
+    let _ordersCache=null; // in-memory cache with full slip data
+    function stripForStorage(arr){
+      return arr.map(o=>{const c={...o};
+        if(c.slip&&typeof c.slip==='string'&&c.slip.length>200)c.slip='[stored]';
+        if(Array.isArray(c.slips))c.slips=c.slips.map(s2=>({...s2,data:s2.data&&s2.data.length>200?'[stored]':s2.data}));
+        return c});
+    }
     function getOrders(){
+      if(_ordersCache)return _ordersCache;
       let o=JSON.parse(localStorage.getItem(STORE_KEY)||'[]');
       const mig={confirmed:'cooking',ready:'delivering'};
       let changed=false;
@@ -817,7 +826,7 @@
       if(changed)localStorage.setItem(STORE_KEY,JSON.stringify(o));
       return o;
     }
-    function saveOrders(arr){localStorage.setItem(STORE_KEY,JSON.stringify(arr))}
+    function saveOrders(arr){_ordersCache=arr;try{localStorage.setItem(STORE_KEY,JSON.stringify(stripForStorage(arr)))}catch(e){console.warn('Storage full, clearing old orders');try{localStorage.removeItem(STORE_KEY);localStorage.setItem(STORE_KEY,JSON.stringify(stripForStorage(arr)))}catch(e2){}}}
     function isAvail(id){const p=products.find(x=>x.id===id);return p?p.available!==false:true}
     function getMyOrders(){return JSON.parse(localStorage.getItem(MY_KEY)||'[]')}
     function saveMyOrder(id,qn){const m=getMyOrders();m.push({id,queue_num:qn});localStorage.setItem(MY_KEY,JSON.stringify(m))}
@@ -1497,15 +1506,15 @@
     }
     function renderSlipStack(slips,idx){
       if(!slips.length)return'';
-      return'<div class="slip-stack">'+slips.map((s2,si)=>{
+      return'<div class="slip-stack">'+slips.map((s2,si)=>{const hasImg=s2.data&&s2.data!=='[stored]';
         const isReply=si>0;const lbl=isReply?'Reply #'+si:'Original';
         const cls=isReply?'reply':'original';
         const ts=s2.ts?new Date(s2.ts).toLocaleString():'';
         const msgHtml=s2.msg?`<div style="font-size:.65rem;color:#555;margin-top:.25rem;padding:.4rem .5rem;background:rgba(95,20,49,.03);border-radius:6px;line-height:1.45">\U0001f4ac ${s2.msg}</div>`:'';
-        return`<div class="slip-entry"><div class="slip-label ${cls}"><span class="slip-tag">${lbl}</span><span class="slip-ts">${ts}</span></div><img src="${s2.data}" style="width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlipImg('${s2.data.replace(/'/g,'')}')">`+msgHtml+'</div>';
+        return`<div class="slip-entry"><div class="slip-label ${cls}"><span class="slip-tag">${lbl}</span><span class="slip-ts">${ts}</span></div>${hasImg?`<img src="${s2.data}" style="width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlipImg('${s2.data.replace(/'/g,'')}')">`:`<div style="padding:.5rem;background:#f5f0eb;border-radius:6px;font-size:.6rem;color:#999;text-align:center">Slip uploaded \u2713</div>`}`+msgHtml+'</div>';
       }).join('')+'</div>';
     }
-    window.showSlipImg=function(src){document.getElementById('mSlipImg').src=src;document.getElementById('slipMod').classList.add('open')};
+    window.showSlipImg=function(src){if(!src||src==='[stored]'){toast('Slip image loading from cloud...');return}document.getElementById('mSlipImg').src=src;document.getElementById('slipMod').classList.add('open')};
     window.handleResub=function(qnum,input){
       const f=input&&input.files&&input.files[0];if(!f)return;
       if(!f.type.startsWith('image/')){toast('Please choose an image');return}
@@ -1662,7 +1671,8 @@
 
     function toast(msg){const box=document.getElementById('toastBox');const el=document.createElement('div');el.className='t-msg';el.textContent=msg;box.appendChild(el);setTimeout(()=>{el.classList.add('out');setTimeout(()=>el.remove(),300)},2500)}
 
-    // Init
+    // Init — clear bloated localStorage if slip images filled it up
+    try{const raw=localStorage.getItem('jfs_orders');if(raw&&raw.length>1000000){console.warn('Clearing bloated order cache ('+Math.round(raw.length/1024)+'KB)');localStorage.removeItem('jfs_orders')}}catch(e){}
     // availability from products (no stock map)
     // inject config-driven text
     {const cp=document.getElementById('contactPhone');if(cp)cp.textContent=CONTACT_PHONE;
