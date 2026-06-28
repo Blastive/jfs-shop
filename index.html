@@ -1510,7 +1510,7 @@
         const isReply=si>0;const lbl=isReply?'Reply #'+si:'Original';
         const cls=isReply?'reply':'original';
         const ts=s2.ts?new Date(s2.ts).toLocaleString():'';
-        const msgHtml=s2.msg?`<div style="font-size:.65rem;color:#555;margin-top:.25rem;padding:.4rem .5rem;background:rgba(95,20,49,.03);border-radius:6px;line-height:1.45">\U0001f4ac ${s2.msg}</div>`:'';
+        const msgHtml=s2.msg?`<div style="font-size:.65rem;color:#555;margin-top:.25rem;padding:.4rem .5rem;background:rgba(95,20,49,.03);border-radius:6px;line-height:1.45">💬 ${s2.msg}</div>`:'';
         return`<div class="slip-entry"><div class="slip-label ${cls}"><span class="slip-tag">${lbl}</span><span class="slip-ts">${ts}</span></div>${hasImg?`<img src="${s2.data}" style="width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlipImg('${s2.data.replace(/'/g,'')}')">`:`<div style="padding:.5rem;background:#f5f0eb;border-radius:6px;font-size:.6rem;color:#999;text-align:center">Slip uploaded \u2713</div>`}`+msgHtml+'</div>';
       }).join('')+'</div>';
     }
@@ -1534,7 +1534,7 @@
       o.reject_reason='';o.report_reason='';o.reported=false;
       saveOrders(orders);
       if(useSB&&sb){
-        await pushUpdate(o,{status:'pending',slip_url:JSON.stringify(existing),reject_reason:'',reported:false,report_reason:''});
+        await pushUpdate(o,{status:'pending',slip_url:JSON.stringify(existing)});
       }
       renderMyOrders();
       if(lastTrack===qnum){const upd=getOrders().find(x=>x.queue_num===qnum);if(upd)document.getElementById('trackResult').innerHTML=trackCardHTML(upd)}
