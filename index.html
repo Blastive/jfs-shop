@@ -710,13 +710,28 @@
       if(!sb)return;
       try{
         const{error}=await sb.from('orders').select('id').limit(1);
-        if(!error){useSB=true;console.log('✓ Supabase connected');await syncFromSupabase()}
+        if(!error){
+          useSB=true;console.log('Supabase connected');
+          await syncFromSupabase();
+          try{
+            sb.channel('orders-rt')
+              .on('postgres_changes',{event:'*',schema:'public',table:'orders'},async()=>{
+                await syncFromSupabase();
+                if(admLoggedIn)renderAdm();
+                const n=getOrders().length;if(typeof prevCount!=='undefined'&&n>prevCount){playNotif();toast('New order!')}
+                if(typeof prevCount!=='undefined')prevCount=n;
+              })
+              .subscribe(st=>{console.log('Realtime:',st)});
+          }catch(e){console.warn('Realtime setup failed:',e)}
+        }
         else{console.warn('Supabase tables issue:',error.message)}
       }catch(e){console.warn('Supabase offline:',e)}
     }
 
     // Pull all orders from Supabase → localStorage
-    let syncLock=false;
+    let syncLock=false,syncLockTimer=null;
+    function lockSync(){syncLock=true;clearTimeout(syncLockTimer);syncLockTimer=setTimeout(()=>{syncLock=false},5000)}
+    function unlockSync(){syncLock=false;clearTimeout(syncLockTimer)}
     async function syncFromSupabase(){
       if(!useSB||syncLock)return;
       try{
@@ -751,24 +766,30 @@
     // Push a new order to Supabase
     async function pushNewOrder(order){
       if(!useSB)return;
-      try{
-        const{data,error}=await sb.from('orders').insert({
-          buyer_name:order.buyer.name,buyer_class:order.buyer.cls,
-          buyer_contact:order.buyer.loc?JSON.stringify(order.buyer.loc):'',buyer_room:order.buyer.room,
-          buyer_notes:order.buyer.notes,items:order.items,
-          total:order.total,slip_url:order.slips&&order.slips.length?JSON.stringify(order.slips):(order.slip||''),status:'pending',
-          payment_method:order.payment_method||'qr'
-        }).select().single();
-        if(error){console.error('❌ Insert failed:',error.message,error.details);return}
-        if(data){
-          console.log('✓ Pushed to Supabase, queue #'+data.queue_num);
-          order.queue_num=data.queue_num;
-          order.id='JFS-'+String(data.queue_num).padStart(3,'0');
-          for(const item of order.items){
-            // stock decrement removed — admin toggles availability
+      const slip=order.slips&&order.slips.length?JSON.stringify(order.slips):(order.slip||'');
+      const base={
+        buyer_name:order.buyer.name,buyer_class:order.buyer.cls,
+        buyer_contact:order.buyer.loc?JSON.stringify(order.buyer.loc):'',buyer_room:order.buyer.room,
+        buyer_notes:order.buyer.notes||'',items:order.items,
+        total:order.total,slip_url:slip,status:'pending'
+      };
+      // Try with extra columns first, fall back to base if schema is old
+      for(const row of [{...base,payment_method:order.payment_method||'qr'}, base]){
+        try{
+          const{data,error}=await sb.from('orders').insert(row).select().single();
+          if(error){
+            if(error.message&&error.message.includes('column')&&row.payment_method){continue} // retry without extra columns
+            console.error('Insert failed:',error.message);toast('Order saved on this device only \u2014 cloud sync failed');return;
           }
-        }
-      }catch(e){console.error('❌ pushNewOrder:',e)}
+          if(data){
+            console.log('Pushed to Supabase, queue #'+data.queue_num);
+            order.queue_num=data.queue_num;
+            order.id='JFS-'+String(data.queue_num).padStart(3,'0');
+          }
+          return; // success
+        }catch(e){console.error('pushNewOrder:',e)}
+      }
+      toast('Order saved locally \u2014 could not reach cloud');
     }
 
     // Push status/field update to Supabase (use queue_num for lookup)
@@ -776,8 +797,12 @@
       if(!useSB)return;
       try{
         const{error}=await sb.from('orders').update(fields).eq('queue_num',order.queue_num);
-        if(error)console.warn('pushUpdate error:',error.message);
-        else console.log('✓ Pushed update for #'+order.queue_num);
+        if(error){
+          console.warn('pushUpdate error:',error.message);
+          if(error.message&&(error.message.includes('permission')||error.message.includes('policy')||error.code==='42501')){
+            toast('Cloud update blocked \u2014 sign in with your Supabase email for full admin access');
+          }
+        }
       }catch(e){console.warn('pushUpdate failed:',e)}
     }
 
@@ -786,7 +811,12 @@
       if(!useSB)return;
       try{
         const{error}=await sb.from('orders').update({status:'deleted',delete_reason:order.delete_reason||''}).eq('queue_num',order.queue_num);
-        if(error)console.warn('pushDelete error:',error.message);
+        if(error){
+          console.warn('pushDelete error:',error.message);
+          if(error.message&&(error.message.includes('permission')||error.message.includes('policy'))){
+            toast('Cloud delete blocked \u2014 sign in with Supabase email for full access');
+          }
+        }
       }catch(e){console.warn('pushDelete failed:',e)}
     }
 
@@ -1157,7 +1187,8 @@
       }catch(e){}
     }
     function checkOrderNotifs(){
-      const myIds=JSON.parse(localStorage.getItem('jfs_myorders')||'[]');if(!myIds.length)return;
+      const myRaw=JSON.parse(localStorage.getItem(MY_KEY)||'[]');if(!myRaw.length)return;
+      const myIds=myRaw.map(x=>typeof x==='object'?x.queue_num:x).filter(Boolean);
       const orders=getOrders();const bell=document.getElementById('notifBell');const dot=document.getElementById('notifDot');
       if(myIds.length)bell.style.display='';
       let hasNew=false;
@@ -1190,7 +1221,7 @@
       const text=document.getElementById('annInput').value.trim();
       if(!text){toast('Type something first');return}
       currentAnnounce=text;showAnnounce(text);
-      if(useSB&&sb){try{await sb.from('settings').upsert({id:'announcement',value:text})}catch(e){console.warn('announce sync:',e)}}
+      if(useSB&&sb){try{await sb.from('settings').upsert({id:'announcement',value:text}).then(r=>{if(r.error)console.warn('announce:',r.error.message)})}catch(e){}}
       toast('Announcement set ✓');
     };
     window.clearAnnounce=async function(){
@@ -1261,7 +1292,7 @@
       catalogTS=Date.now();
       localStorage.setItem(CAT_KEY,JSON.stringify({ts:catalogTS,products}));
       renderGrid();renderAdm();
-      if(useSB&&sb){try{await sb.from('catalog').upsert({id:'main',products:products,updated_at:new Date(catalogTS).toISOString()})}catch(e){console.warn('avail sync:',e)}}
+      if(useSB&&sb){try{const r=await sb.from('catalog').upsert({id:'main',products:products,updated_at:new Date(catalogTS).toISOString()});if(r.error)console.warn('avail sync:',r.error.message)}catch(e){}}
       toast(pname(p)+' '+(p.available?'✓ available':'✗ sold out'));
     };
     window.admLogout=async function(){
@@ -1363,13 +1394,13 @@
     // Admin actions (synchronous)
     let stBusy=false;
     window.setSt=function(idx,status){
-      if(stBusy)return;stBusy=true;syncLock=true;
+      if(stBusy)return;stBusy=true;lockSync();
       const orders=getOrders();
-      if(!orders[idx]){stBusy=false;syncLock=false;return}
+      if(!orders[idx]){stBusy=false;unlockSync();return}
       // If rejecting, ask for reason
       if(status==='rejected'){
         const reason=prompt('Rejection reason (customer will see this):');
-        if(!reason){stBusy=false;syncLock=false;return}
+        if(!reason){stBusy=false;unlockSync();return}
         orders[idx].reject_reason=reason;
       }
       // If un-rejecting, clear reason
@@ -1378,8 +1409,8 @@
       saveOrders(orders);renderAdm();
       toast('Order #'+String(orders[idx]?.queue_num||0).padStart(3,'0')+' → '+status);
       // Push ONLY status to Supabase (minimal — avoids column mismatches)
-      pushUpdate(orders[idx],{status}).then(()=>{syncLock=false}).catch(()=>{syncLock=false});
-      setTimeout(()=>{stBusy=false;syncLock=false},2000);
+      pushUpdate(orders[idx],{status}).then(()=>{unlockSync()}).catch(()=>{unlockSync()});
+      setTimeout(()=>{stBusy=false;unlockSync()},2000);
     };
 
     window.deleteOrd=function(idx){
@@ -1581,7 +1612,7 @@
       let cloud='local';
       if(useSB&&sb){
         try{
-          const{error}=await sb.from('catalog').upsert({id:'main',products:products,updated_at:new Date(catalogTS).toISOString()});
+          const{error}=await sb.from('catalog').upsert({id:'main',products:products,updated_at:new Date(catalogTS).toISOString()}).then(r=>r).catch(e=>({error:e}));
           if(error)throw error;
           // stock upserts removed — availability in catalog
           cloud='cloud';
@@ -1636,7 +1667,8 @@
     {const cp=document.getElementById('contactPhone');if(cp)cp.textContent=CONTACT_PHONE;
      const pn=document.getElementById('ppName');if(pn)pn.textContent=PROMPTPAY_NAME;}
     // init notification baselines
-    {const mi=JSON.parse(localStorage.getItem('jfs_myorders')||'[]');const ords=getOrders();mi.forEach(qn=>{const o=ords.find(x=>x.queue_num===qn);if(o)prevMyStatuses[qn]=o.status});const bell=document.getElementById('notifBell');if(mi.length&&bell)bell.style.display=''}
+    {const miRaw=JSON.parse(localStorage.getItem(MY_KEY)||'[]');
+    const mi=miRaw.map(x=>typeof x==='object'?x.queue_num:x).filter(Boolean);const ords=getOrders();mi.forEach(qn=>{const o=ords.find(x=>x.queue_num===qn);if(o)prevMyStatuses[qn]=o.status});const bell=document.getElementById('notifBell');if(mi.length&&bell)bell.style.display=''}
     applyLang();
     initSupabase().then(()=>{renderGrid()});
     // Live updates for customers (track + shop) without manual refresh
