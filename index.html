@@ -829,7 +829,7 @@
     function saveOrders(arr){_ordersCache=arr;try{localStorage.setItem(STORE_KEY,JSON.stringify(stripForStorage(arr)))}catch(e){console.warn('Storage full, clearing old orders');try{localStorage.removeItem(STORE_KEY);localStorage.setItem(STORE_KEY,JSON.stringify(stripForStorage(arr)))}catch(e2){}}}
     function isAvail(id){const p=products.find(x=>x.id===id);return p?p.available!==false:true}
     function getMyOrders(){return JSON.parse(localStorage.getItem(MY_KEY)||'[]')}
-    function saveMyOrder(id,qn){const m=getMyOrders();m.push({id,queue_num:qn});localStorage.setItem(MY_KEY,JSON.stringify(m))}
+    function saveMyOrder(id,qn,ts){const m=getMyOrders();m.push({id,queue_num:qn,ts:ts||''});localStorage.setItem(MY_KEY,JSON.stringify(m))}
 
     // ═══════ LANGUAGE ═══════
     let lang=localStorage.getItem('jfs_lang')||'en';
@@ -1000,7 +1000,7 @@
         };
         // Save locally FIRST → instant confirmation
         orders.push(order);saveOrders(orders);
-        saveMyOrder(order.id,order.queue_num);
+        saveMyOrder(order.id,order.queue_num,order.ts);
         localStorage.setItem('jfs_last_order',String(Date.now()));
         // Show thank-you immediately
         cart={};cartMeta={};slipData='';['coName','coClass','coRoom','coNotes'].forEach(id=>document.getElementById(id).value='');
@@ -1012,11 +1012,16 @@
         // Push to Supabase IN THE BACKGROUND (non-blocking)
         pushNewOrder(order).then(ok=>{
           if(ok&&order.queue_num!==qn){
-            // Supabase assigned a different queue_num — update local
+            // Supabase assigned a different queue_num — update local orders
             const o2=getOrders();const local=o2.find(x=>x.ts===order.ts);
             if(local){local.queue_num=order.queue_num;local.id=order.id;saveOrders(o2)}
+            // Update myOrders tracking with the real queue_num
+            const my=getMyOrders();const me=my.find(m=>m.ts===order.ts||m.queue_num===qn);
+            if(me){me.queue_num=order.queue_num;me.id=order.id;localStorage.setItem(MY_KEY,JSON.stringify(my))}
             document.getElementById('tyQueue').textContent='#'+String(order.queue_num).padStart(3,'0');
             document.getElementById('tyId').textContent='Order '+order.id;
+            // Re-render track page if visible
+            const tp=document.getElementById('page-track');if(tp&&tp.classList.contains('active'))renderMyOrders();
           }
           if(!ok)toast('Order saved here \u2014 cloud sync will retry');
         }).catch(()=>{});
@@ -1110,8 +1115,9 @@
       if(!myList.length){el.innerHTML='<div style="text-align:center;padding:2rem;color:#aaa;font-size:.8rem">You haven\'t placed any orders yet.</div>';return}
       const orders=getOrders();
       const myQNums=new Set(myList.map(m=>m.queue_num));
-      // Only show orders that THIS browser placed
-      const myOrders=orders.filter(o=>myQNums.has(o.queue_num));
+      const myTimestamps=new Set(myList.map(m=>m.ts).filter(Boolean));
+      // Match by queue_num OR timestamp (handles queue_num reassignment)
+      const myOrders=orders.filter(o=>myQNums.has(o.queue_num)||(o.ts&&myTimestamps.has(o.ts)));
       if(!myOrders.length){el.innerHTML='<div style="text-align:center;padding:2rem;color:#aaa;font-size:.8rem">Your orders are no longer available.</div>';return}
       let html='<h4 style="font-family:Playfair Display,serif;font-style:italic;font-size:.9rem;color:var(--m);margin-bottom:.6rem">Your Orders</h4>';
       myOrders.slice().reverse().forEach(o=>html+=trackCardHTML(o));
@@ -1194,7 +1200,7 @@
     }
     function checkOrderNotifs(){
       const myRaw=JSON.parse(localStorage.getItem(MY_KEY)||'[]');if(!myRaw.length)return;
-      const myIds=myRaw.map(x=>typeof x==='object'?x.queue_num:x).filter(Boolean);
+      const myIds=[...new Set(myRaw.map(x=>typeof x==='object'?x.queue_num:x).filter(Boolean))];
       const orders=getOrders();const bell=document.getElementById('notifBell');const dot=document.getElementById('notifDot');
       if(myIds.length)bell.style.display='';
       let hasNew=false;
