@@ -766,30 +766,18 @@
     // Push a new order to Supabase
     async function pushNewOrder(order){
       if(!useSB)return;
-      const slip=order.slips&&order.slips.length?JSON.stringify(order.slips):(order.slip||'');
-      const base={
-        buyer_name:order.buyer.name,buyer_class:order.buyer.cls,
-        buyer_contact:order.buyer.loc?JSON.stringify(order.buyer.loc):'',buyer_room:order.buyer.room,
-        buyer_notes:order.buyer.notes||'',items:order.items,
-        total:order.total,slip_url:slip,status:'pending'
-      };
-      // Try with extra columns first, fall back to base if schema is old
-      for(const row of [{...base,payment_method:order.payment_method||'qr'}, base]){
-        try{
-          const{data,error}=await sb.from('orders').insert(row).select().single();
-          if(error){
-            if(error.message&&error.message.includes('column')&&row.payment_method){continue} // retry without extra columns
-            console.error('Insert failed:',error.message);toast('Order saved on this device only \u2014 cloud sync failed');return;
-          }
-          if(data){
-            console.log('Pushed to Supabase, queue #'+data.queue_num);
-            order.queue_num=data.queue_num;
-            order.id='JFS-'+String(data.queue_num).padStart(3,'0');
-          }
-          return; // success
-        }catch(e){console.error('pushNewOrder:',e)}
-      }
-      toast('Order saved locally \u2014 could not reach cloud');
+      try{
+        const slip=order.slips&&order.slips.length?JSON.stringify(order.slips):(order.slip||'');
+        const{data,error}=await sb.from('orders').insert({
+          buyer_name:order.buyer.name,buyer_class:order.buyer.cls,
+          buyer_contact:order.buyer.loc?JSON.stringify(order.buyer.loc):'',
+          buyer_room:order.buyer.room,buyer_notes:order.buyer.notes||'',
+          items:order.items,total:order.total,slip_url:slip,status:'pending'
+        }).select().single();
+        if(error){console.warn('Push failed:',error.message);return false}
+        if(data){order.queue_num=data.queue_num;order.id='JFS-'+String(data.queue_num).padStart(3,'0')}
+        return true;
+      }catch(e){console.warn('Push error:',e);return false}
     }
 
     // Push status/field update to Supabase (use queue_num for lookup)
@@ -995,32 +983,38 @@
       try{
         const orders=getOrders();
         const qn=orders.length>0?Math.max(...orders.map(o=>o.queue_num||0))+1:1;
-        const oid='JFS-'+String(qn).padStart(3,'0');
         const order={
-          id:oid,queue_num:qn,ts:new Date().toISOString(),
+          id:'JFS-'+String(qn).padStart(3,'0'),queue_num:qn,ts:new Date().toISOString(),
           buyer:(()=>{const nm=document.getElementById('coName').value.trim(),cl=document.getElementById('coClass').value.trim(),nt=document.getElementById('coNotes').value.trim();let rm,lc=null;if(coType==='audi'&&coLoc){lc=coLoc;rm='🎭 Auditorium · '+locReadable(coLoc,'en')}else{rm=document.getElementById('coRoom').value.trim()}return{name:nm,cls:cl,room:rm,notes:nt,loc:lc}})(),
           items:Object.entries(cart).map(([k,q])=>{const p=products.find(x=>x.id===cartBaseId(k));const ex=cartExtraPerUnit(k);const m=cartMeta[k];return{id:p.id,name:p.name,qty:q,price:p.price+ex,opts:m?m.picks:[]}}),
           total:cTotal(),slip:slipData,slips:slipData?[{data:slipData,ts:new Date().toISOString(),label:'Original'}]:[],payment_method:payMethod,status:'pending'
         };
-        // Push to Supabase first (gets real queue_num)
-        await pushNewOrder(order);
-        // Save locally
+        // Save locally FIRST → instant confirmation
         orders.push(order);saveOrders(orders);
-        // Decrement local stock
-        // no stock decrement — availability is toggled manually by admin
         saveMyOrder(order.id,order.queue_num);
-        localStorage.setItem('jfs_last_order',String(Date.now())); // cooldown
-        // Reset form
+        localStorage.setItem('jfs_last_order',String(Date.now()));
+        // Show thank-you immediately
         cart={};cartMeta={};slipData='';['coName','coClass','coRoom','coNotes'].forEach(id=>document.getElementById(id).value='');
         document.getElementById('coSlipPrev').style.display='none';document.getElementById('coSlipIn').value='';
         btn.textContent=t('placeOrder');bump();renderGrid();closeCo();
         document.getElementById('tyQueue').textContent='#'+String(order.queue_num).padStart(3,'0');
         document.getElementById('tyId').textContent='Order '+order.id;
         document.getElementById('tyOv').classList.add('open');
+        // Push to Supabase IN THE BACKGROUND (non-blocking)
+        pushNewOrder(order).then(ok=>{
+          if(ok&&order.queue_num!==qn){
+            // Supabase assigned a different queue_num — update local
+            const o2=getOrders();const local=o2.find(x=>x.ts===order.ts);
+            if(local){local.queue_num=order.queue_num;local.id=order.id;saveOrders(o2)}
+            document.getElementById('tyQueue').textContent='#'+String(order.queue_num).padStart(3,'0');
+            document.getElementById('tyId').textContent='Order '+order.id;
+          }
+          if(!ok)toast('Order saved here \u2014 cloud sync will retry');
+        }).catch(()=>{});
       }catch(e){
         console.error('Order failed:',e);
         btn.disabled=false;btn.textContent=t('placeOrder');
-        toast('Order failed — try again');
+        toast('Order failed \u2014 try again');
       }
     };
     window.closeTy=function(){document.getElementById('tyOv').classList.remove('open')};
@@ -1127,7 +1121,10 @@
       const btn=document.getElementById('admLoginBtn');
       btn.disabled=true;btn.textContent='Signing in…';
       if(useSB&&sb&&email){
-        try{const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
+        try{
+          const authP=sb.auth.signInWithPassword({email,password:pass});
+          const timeoutP=new Promise(r=>setTimeout(()=>r({data:null,error:{message:'timeout'}}),3000));
+          const{data,error}=await Promise.race([authP,timeoutP]);
           if(!error&&data?.session){enterAdmin();btn.disabled=false;btn.textContent='Sign In';toast('Signed in ✓');return}
         }catch(e){}
       }
@@ -1305,8 +1302,12 @@
       toast('Logged out');
     };
     async function checkAdminSession(){
-      if(useSB&&sb){try{const{data}=await sb.auth.getSession();
-        if(data?.session){enterAdmin();return}}catch(e){}}
+      if(useSB&&sb){try{
+        const gp=sb.auth.getSession();
+        const tp=new Promise(r=>setTimeout(()=>r({data:null}),2000));
+        const{data}=await Promise.race([gp,tp]);
+        if(data?.session){enterAdmin();return}
+      }catch(e){}}
       if(sessionStorage.getItem('jfs_admin')==='true'){enterAdmin()}
     }
 
