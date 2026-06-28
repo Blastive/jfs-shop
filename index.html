@@ -1684,5 +1684,31 @@
     },6000);
   })();
   </script>
+
+  <!-- DEBUG PANEL (remove after testing) -->
+  <style>
+    #dbgBtn{position:fixed;bottom:12px;left:12px;z-index:99999;width:36px;height:36px;border-radius:50%;background:#333;color:#fff;border:none;font-size:16px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}
+    #dbgPanel{position:fixed;bottom:56px;left:12px;z-index:99999;width:min(340px,85vw);max-height:45vh;background:#1a1a1a;color:#0f0;border-radius:10px;font-family:monospace;font-size:11px;overflow-y:auto;display:none;box-shadow:0 4px 20px rgba(0,0,0,.5);padding:8px}
+    #dbgPanel.open{display:block}
+    #dbgPanel div{padding:3px 0;border-bottom:1px solid #333;word-break:break-all}
+    #dbgPanel .err{color:#f44}
+    #dbgPanel .warn{color:#fa0}
+    #dbgPanel .ok{color:#4f4}
+  </style>
+  <button id="dbgBtn" onclick="document.getElementById('dbgPanel').classList.toggle('open')">🐛</button>
+  <div id="dbgPanel"></div>
+  <script>
+    (function(){
+      const panel=document.getElementById('dbgPanel');
+      function log(msg,cls){const d=document.createElement('div');d.className=cls||'';d.textContent=new Date().toLocaleTimeString()+' '+msg;panel.prepend(d);if(panel.children.length>50)panel.lastChild.remove()}
+      const _log=console.log,_warn=console.warn,_err=console.error;
+      console.log=function(){_log.apply(console,arguments);log([...arguments].join(' '),'ok')};
+      console.warn=function(){_warn.apply(console,arguments);log([...arguments].join(' '),'warn')};
+      console.error=function(){_err.apply(console,arguments);log([...arguments].join(' '),'err')};
+      window.addEventListener('error',e=>log('ERROR: '+e.message,'err'));
+      window.addEventListener('unhandledrejection',e=>log('REJECT: '+(e.reason?.message||e.reason),'err'));
+      log('Debug panel ready — place an order to see what happens','ok');
+    })();
+  </script>
 </body>
 </html>
