@@ -39,6 +39,7 @@
     .runner-feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
     .rn-card{display:flex;gap:.8rem;align-items:stretch;background:#fff;border-radius:12px;padding:.8rem;border:1px solid rgba(95,20,49,.06)}
     .rn-card.rn-wait{opacity:.55}
+    .rn-card.rn-ready{border-color:rgba(45,106,79,.3);background:rgba(45,106,79,.03)}
     .rn-room{flex-shrink:0;width:74px;background:var(--m);color:#fff;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.4rem}
     .rn-room span{font-size:.5rem;letter-spacing:.16em;opacity:.7}
     .rn-room b{font-family:'Playfair Display',serif;font-size:1.7rem;line-height:1;text-align:center}
@@ -476,6 +477,7 @@
         <p style="font-size:.58rem;color:#aaa;text-align:center;margin-top:.6rem">Create your admin account in Supabase → Authentication → Users.<br>Or use the offline password: <code>eis28film</code></p>
       </div>
       <div id="admDash" style="display:none">
+        <div class="reveal" id="shopFilterBar" style="margin-bottom:.6rem"><select id="shopFilter" onchange="setAdmShop(this.value)" style="width:100%;padding:.5rem .7rem;border:1.5px solid rgba(95,20,49,.15);border-radius:8px;font-family:Inter,Noto Sans Thai,sans-serif;font-weight:700;font-size:.74rem;color:var(--m);background:#fff;appearance:auto"><option value="all">All Shops</option></select></div>
         <div class="ann-ctrl reveal" id="annCtrl">
           <input type="text" id="annInput" placeholder="Type an announcement for customers…" onkeydown="if(event.key==='Enter')setAnnounce()">
           <button onclick="setAnnounce()" style="background:var(--warn-bg);color:#8a6d20">📢 Set</button>
@@ -486,6 +488,7 @@
           <div class="st-card"><div class="st-num" id="sT">0</div><div class="st-lbl">Total</div></div>
           <div class="st-card"><div class="st-num" id="sP">0</div><div class="st-lbl">Received</div></div>
           <div class="st-card"><div class="st-num" id="sC">0</div><div class="st-lbl">Cooking</div></div>
+          <div class="st-card"><div class="st-num" id="sRdy">0</div><div class="st-lbl">Ready</div></div>
           <div class="st-card"><div class="st-num" id="sD">0</div><div class="st-lbl">Delivering</div></div>
           <div class="st-card"><div class="st-num" id="sF">0</div><div class="st-lbl">Finished</div></div>
           <div class="st-card"><div class="st-num" id="sR">฿0</div><div class="st-lbl">Revenue</div></div>
@@ -696,7 +699,7 @@
     }
     let products=loadCatalog();
 
-    let cart={},cartMeta={},stockMap={},slipData='',admLoggedIn=false,activeAdmTab='all',activeCat='All',admView='kitchen',menuDraft=[],coType='room',coLoc=null,lastTrack=null,isResend=false,optProduct=null,optPicks=[],prevMyStatuses={};
+    let cart={},cartMeta={},stockMap={},slipData='',admLoggedIn=false,activeAdmTab='all',activeCat='All',admView='kitchen',admShop='all',menuDraft=[],coType='room',coLoc=null,lastTrack=null,isResend=false,optProduct=null,optPicks=[],prevMyStatuses={};
     const ph='<svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20"/></svg>';
 
     // ═══════ SUPABASE + LOCAL STORAGE ═══════
@@ -1086,6 +1089,7 @@
       switch(status){
         case'pending':stxt='Order Received';instr='We\'re checking your payment. Hang tight!';break;
         case'cooking':stxt='Cooking Your Food';instr='Payment confirmed! The kitchen is preparing your order.';break;
+        case'ready':stxt='Ready for Pickup!';instr='Your food is ready! A runner will deliver it shortly.';break;
         case'delivering':stxt='On Its Way!';instr='Your food is being delivered to Room '+room+'. Be there to receive it!';break;
         case'completed':stxt='Delivered — Enjoy!';instr='Your order has been delivered. Thank you!';break;
         case'rejected':stxt='Order Rejected';instr='';break;
@@ -1326,8 +1330,9 @@
       if(sessionStorage.getItem('jfs_admin')==='true'){enterAdmin()}
     }
 
-    const TABS=[{k:'all',l:'All Orders'},{k:'pending',l:'Order Received'},{k:'cooking',l:'Cooking'},{k:'delivering',l:'Delivering'},{k:'completed',l:'Finished'},{k:'rejected',l:'Rejected'},{k:'deleted',l:'Deleted'}];
+    const TABS=[{k:'all',l:'All Orders'},{k:'pending',l:'Order Received'},{k:'cooking',l:'Cooking'},{k:'ready',l:'Ready'},{k:'delivering',l:'Delivering'},{k:'completed',l:'Finished'},{k:'rejected',l:'Rejected'},{k:'deleted',l:'Deleted'}];
     window.setAdmTab=function(k){activeAdmTab=k;renderAdm()};
+    window.setAdmShop=function(v){admShop=v;renderAdm()};
 
     function elapsedStr(ts){
       const s=Math.floor((Date.now()-new Date(ts).getTime())/1000);
@@ -1343,10 +1348,14 @@
       const orders=getOrders();
       // View toggle (Kitchen vs Runner)
       const isRunner=admView==='runner';
+      const sf=document.getElementById('shopFilter');
+      if(sf){const shops=['all',...new Set(products.map(p=>p.cat))];
+        sf.innerHTML=shops.map(sh=>`<option value="${sh}" ${sh===admShop?'selected':''}>${sh==='all'?'All Shops':(lang==='th'?(CAT_TH[sh]||sh):sh)}</option>`).join('')}
       const annIn=document.getElementById('annInput');if(annIn&&currentAnnounce&&!annIn.value)annIn.value=currentAnnounce;
       const vt=document.getElementById('viewToggleBtn');if(vt){vt.textContent=isRunner?'🍳 Kitchen View':'🛵 Runner View'}
       const stEl=document.querySelector('.adm-stats');if(stEl)stEl.style.display=isRunner?'none':'';
       const annCtrl=document.getElementById('annCtrl');if(annCtrl)annCtrl.style.display=isRunner?'none':'';
+      const sfBar=document.getElementById('shopFilterBar');if(sfBar)sfBar.style.display=isRunner?'none':'';
       const availBar=document.getElementById('availBar');if(availBar){availBar.style.display=isRunner?'none':'';availBar.innerHTML=products.map(p=>`<button class="avail-pill ${p.available!==false?'on':'off'}" onclick="toggleAvail('${p.id}')">${pname(p)}</button>`).join('')}
       document.getElementById('admTabs').style.display=isRunner?'none':'';
       document.getElementById('orderFeed').style.display=isRunner?'none':'';
@@ -1365,6 +1374,7 @@
       document.getElementById('sT').textContent=orders.length;
       document.getElementById('sP').textContent=counts.pending||0;
       document.getElementById('sC').textContent=counts.cooking||0;
+      document.getElementById('sRdy').textContent=counts.ready||0;
       document.getElementById('sD').textContent=counts.delivering||0;
       document.getElementById('sF').textContent=counts.completed||0;
       document.getElementById('sR').textContent='฿'+rev.toLocaleString();
@@ -1375,7 +1385,8 @@
 
       // Feed
       let filtered=activeAdmTab==='all'?[...orders]:orders.filter(o=>o.status===activeAdmTab);
-      filtered.sort((a,b)=>{const p={pending:0,cooking:1,delivering:2,completed:3,rejected:4,deleted:5};return(p[a.status]??5)-(p[b.status]??5)||new Date(a.ts)-new Date(b.ts)});
+      if(admShop!=='all')filtered=filtered.filter(o=>(o.items||[]).some(i=>{const p=products.find(x=>x.id===i.id);return p&&p.cat===admShop}));
+      filtered.sort((a,b)=>{const p={pending:0,cooking:1,ready:2,delivering:3,completed:4,rejected:5,deleted:6};return(p[a.status]??5)-(p[b.status]??5)||new Date(a.ts)-new Date(b.ts)});
       const feed=document.getElementById('orderFeed');
       if(!filtered.length){feed.innerHTML='<div class="of-empty">No orders in this category.</div>';return}
 
@@ -1397,9 +1408,10 @@
 
         let act='';
         if(o.status==='pending')act=`<button class="oa oa-c" onclick="setSt(${idx},'cooking')">🍳 Cook</button><button class="oa oa-r" onclick="setSt(${idx},'rejected')">✗</button>`;
-        if(o.status==='cooking')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'pending')">↩</button><button class="oa oa-ready" onclick="setSt(${idx},'delivering')">🚀 Deliver</button>`;
-        if(o.status==='delivering')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'cooking')">↩</button><button class="oa oa-c" onclick="setSt(${idx},'completed')">✓ Done</button>`;
-        if(o.status==='completed')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'delivering')">↩</button>`;
+        if(o.status==='cooking')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'pending')">↩</button><button class="oa oa-ready" style="background:rgba(45,106,79,.1);color:var(--success)" onclick="setSt(${idx},'ready')">✓ Ready</button>`;
+        if(o.status==='ready')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'cooking')">↩</button><span style="font-size:.6rem;color:var(--success);font-weight:700">⏳ Waiting for runner</span>`;
+        if(o.status==='delivering')act=`<span style="font-size:.6rem;color:#1565C0;font-weight:700">🛵 Runner delivering</span>`;
+        if(o.status==='completed')act=`<span style="font-size:.6rem;color:var(--success);font-weight:700">✅ Done</span>`;
         if(o.status==='rejected')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'pending')">↩ Undo</button>`;
         if(o.status==='deleted')act=`<button class="oa" style="background:rgba(95,20,49,.05);color:#888" onclick="setSt(${idx},'pending')">↩ Restore</button>`;
 
@@ -1567,17 +1579,17 @@
     // ═══════ ADMIN: RUNNER (DELIVERY) VIEW ═══════
     window.toggleAdmView=function(){admView=admView==='kitchen'?'runner':'kitchen';renderAdm()};
     function renderRunner(orders){
-      const active=orders.filter(o=>o.status==='delivering'||o.status==='cooking');
-      active.sort((a,b)=>{const p={delivering:0,cooking:1};return(p[a.status]-p[b.status])||String(a.buyer?.room||'').localeCompare(String(b.buyer?.room||''),undefined,{numeric:true})||new Date(a.ts)-new Date(b.ts)});
+      const active=orders.filter(o=>o.status==='ready'||o.status==='delivering');
+      active.sort((a,b)=>{const p={delivering:0,ready:1};return(p[a.status]-p[b.status])||String(a.buyer?.room||'').localeCompare(String(b.buyer?.room||''),undefined,{numeric:true})||new Date(a.ts)-new Date(b.ts)});
       const feed=document.getElementById('runnerFeed');
-      if(!active.length){feed.innerHTML='<div class="of-empty">No active deliveries. Orders you mark “Deliver” in the kitchen show up here.</div>';return}
+      if(!active.length){feed.innerHTML='<div class="of-empty">No orders ready. Shops mark orders “Ready” and they appear here for pickup.</div>';return}
       feed.innerHTML=active.map(o=>{
         const idx=orders.findIndex(x=>x.queue_num===o.queue_num);
         const room=o.buyer?.room||'?';const name=o.buyer?.name||'';const loc=o.buyer?.loc;
         const cash=o.payment_method==='cash';
         const items=(o.items||[]).map(i=>{const prod=products.find(x=>x.id===i.id);return`<div class="rn-it"><span>${i.qty}×</span> ${prod?pname(prod):i.name}</div>`}).join('');
-        const ready=o.status==='delivering';
-        return`<div class="rn-card ${ready?'rn-go':'rn-wait'}">${loc?`<div class="rn-audi"><span>SEAT</span>${miniAudi(loc)}<small>${locReadable(loc,lang)}</small></div>`:`<div class="rn-room"><span>ROOM</span><b>${room}</b></div>`}<div class="rn-mid"><div class="rn-name">${name} · #${String(o.queue_num).padStart(3,'0')}</div><div class="rn-items">${items}</div><div class="rn-pay ${cash?'cash':''}">${cash?'COLLECT ฿'+o.total+' CASH':'PAID ฿'+o.total+' · QR'}</div></div><div class="rn-act">${ready?`<button class="rn-done" onclick="setSt(${idx},'completed')">✓ Delivered</button>`:`<button class="rn-prep" disabled>Cooking…</button>`}</div></div>`;
+        const ready=o.status==='delivering';const isReady=o.status==='ready';
+        return`<div class="rn-card ${ready?'rn-go':'rn-ready'}">${loc?`<div class="rn-audi"><span>SEAT</span>${miniAudi(loc)}<small>${locReadable(loc,lang)}</small></div>`:`<div class="rn-room"><span>ROOM</span><b>${room}</b></div>`}<div class="rn-mid"><div class="rn-name">${name} · #${String(o.queue_num).padStart(3,'0')}</div><div class="rn-items">${items}</div><div class="rn-pay ${cash?'cash':''}">${cash?'COLLECT ฿'+o.total+' CASH':'PAID ฿'+o.total+' · QR'}</div></div><div class="rn-act">${ready?`<button class="rn-done" onclick="setSt(${idx},'completed')">✓ Delivered</button>`:isReady?`<button class="rn-done" style="background:#1565C0" onclick="setSt(${idx},'delivering')">🛵 Pick Up</button>`:`<button class="rn-prep" disabled>Preparing…</button>`}</div></div>`;
       }).join('');
     }
 
@@ -1668,6 +1680,7 @@
       if(pg==='track')renderMyOrders();
     };
     if(location.search.includes('admin')||location.hash==='#admin'){switchPage('admin');checkAdminSession().catch(()=>{})}
+    {const sp=new URLSearchParams(location.search).get('shop');if(sp)admShop=sp}
 
     const nav=document.getElementById('siteNav');
     addEventListener('scroll',()=>nav.classList.toggle('sc',scrollY>60));
