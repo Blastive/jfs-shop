@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0050)file:///C:/Users/panna/Downloads/shop-index_1.html -->
+<!-- saved from url=(0050)file:///C:/Users/panna/Downloads/shop-index_3.html -->
 <html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -573,7 +573,7 @@
                 <p class="slip-hint" id="slipHint" style="font-size:.58rem;color:var(--danger);font-weight:600;margin-top:.3rem;display:none" data-i18n="slipRequired">Upload your payment slip to place the order</p><small>PNG, JPG up to 5MB</small>
                 <input type="file" id="coSlipIn" accept="image/*" style="display:none">
               </div>
-              <div class="slip-prev" id="coSlipPrev"><img id="coSlipImg" src="file:///C:/Users/panna/Downloads/shop-index_1.html" alt="Slip"></div>
+              <div class="slip-prev" id="coSlipPrev"><img id="coSlipImg" src="file:///C:/Users/panna/Downloads/shop-index_3.html" alt="Slip"></div>
             </div>
           </div>
           <!-- Cash section (shown when Cash selected) -->
@@ -641,7 +641,7 @@
     <div class="modal-box">
       <button class="modal-x" onclick="document.getElementById(&#39;slipMod&#39;).classList.remove(&#39;open&#39;)">×</button>
       <h3 style="font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;color:var(--m);margin-bottom:.7rem;font-size:1rem">Payment Slip</h3>
-      <img id="mSlipImg" src="file:///C:/Users/panna/Downloads/shop-index_1.html" alt="Slip" style="width:100%;border-radius:4px">
+      <img id="mSlipImg" src="file:///C:/Users/panna/Downloads/shop-index_3.html" alt="Slip" style="width:100%;border-radius:4px">
       <div id="mSlipInfo" style="margin-top:.7rem;font-size:.72rem;color:#666"></div>
     </div>
   </div>
@@ -723,8 +723,37 @@
                 if(admLoggedIn)renderAdm();
                 const n=getOrders().length;if(typeof prevCount!=='undefined'&&n>prevCount){playNotif();toast('New order!')}
                 if(typeof prevCount!=='undefined')prevCount=n;
+                checkOrderNotifs();
+                // Also refresh customer views
+                const tp=document.getElementById('page-track'),sp2=document.getElementById('page-shop');
+                if(tp&&tp.classList.contains('active'))renderMyOrders();
+                if(sp2&&sp2.classList.contains('active'))renderGrid();
               })
-              .subscribe(st=>{console.log('Realtime:',st)});
+              .subscribe(st=>{console.log('Realtime orders:',st)});
+            // Live announcements
+            sb.channel('settings-rt')
+              .on('postgres_changes',{event:'*',schema:'public',table:'settings'},async()=>{
+                await fetchAnnounce();
+              })
+              .subscribe(st=>{console.log('Realtime settings:',st)});
+            // Live catalog/menu changes
+            sb.channel('catalog-rt')
+              .on('postgres_changes',{event:'*',schema:'public',table:'catalog'},async()=>{
+                try{const{data:cat}=await sb.from('catalog').select('*').eq('id','main').limit(1);
+                  if(cat&&cat[0]&&Array.isArray(cat[0].products)&&cat[0].products.length){
+                    products=cat[0].products;catalogTS=Date.now();localStorage.setItem(CAT_KEY,JSON.stringify({ts:catalogTS,products}));
+                    if(typeof renderCats==='function'){renderCats();renderGrid()}
+                  }}catch(e){}
+              })
+              .subscribe(st=>{console.log('Realtime catalog:',st)});
+            // Live shop open/close
+            sb.channel('stock-rt')
+              .on('postgres_changes',{event:'*',schema:'public',table:'stock'},async()=>{
+                try{const{data:ss}=await sb.from('stock').select('*').eq('product_id','_shop_status').limit(1);
+                  if(ss&&ss[0])localStorage.setItem('jfs_shop_open',ss[0].quantity>0?'true':'false');
+                  renderGrid()}catch(e){}
+              })
+              .subscribe(st=>{console.log('Realtime stock:',st)});
           }catch(e){console.warn('Realtime setup failed:',e)}
         }
         else{console.warn('Supabase tables issue:',error.message)}
@@ -1247,8 +1276,10 @@
     };
     async function fetchAnnounce(){
       if(!useSB||!sb)return;
-      try{const{data}=await sb.from('settings').select('value').eq('id','announcement').limit(1);
-        if(data&&data[0]){const v=data[0].value||'';if(v!==currentAnnounce)showAnnounce(v)}}catch(e){}
+      try{const{data,error}=await sb.from('settings').select('value').eq('id','announcement').limit(1);
+        if(error){console.warn('fetchAnnounce error:',error.message);return}
+        if(data&&data[0]){const v=data[0].value||'';if(v!==currentAnnounce)showAnnounce(v)}
+        else{showAnnounce('')}}catch(e){console.warn('fetchAnnounce:',e)}
     }
 
     // ═══════ SALES REPORT ═══════
@@ -1735,32 +1766,5 @@
     },6000);
   })();
   </script>
-
-  <!-- DEBUG PANEL (remove after testing) -->
-  <style>
-    #dbgBtn{position:fixed;bottom:12px;left:12px;z-index:99999;width:36px;height:36px;border-radius:50%;background:#333;color:#fff;border:none;font-size:16px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}
-    #dbgPanel{position:fixed;bottom:56px;left:12px;z-index:99999;width:min(340px,85vw);max-height:45vh;background:#1a1a1a;color:#0f0;border-radius:4px;font-family:monospace;font-size:11px;overflow-y:auto;display:none;box-shadow:0 4px 20px rgba(0,0,0,.5);padding:8px}
-    #dbgPanel.open{display:block}
-    #dbgPanel div{padding:3px 0;border-bottom:1px solid #333;word-break:break-all}
-    #dbgPanel .err{color:#f44}
-    #dbgPanel .warn{color:#fa0}
-    #dbgPanel .ok{color:#4f4}
-  </style>
-  <button id="dbgBtn" onclick="document.getElementById(&#39;dbgPanel&#39;).classList.toggle(&#39;open&#39;)">🐛</button>
-  <div id="dbgPanel"><div class="warn">5:48:14 PM Supabase tables issue: TypeError: Failed to fetch</div><div class="ok">5:48:07 PM Debug panel ready — place an order to see what happens</div></div>
-  <script>
-    (function(){
-      const panel=document.getElementById('dbgPanel');
-      function log(msg,cls){const d=document.createElement('div');d.className=cls||'';d.textContent=new Date().toLocaleTimeString()+' '+msg;panel.prepend(d);if(panel.children.length>50)panel.lastChild.remove()}
-      const _log=console.log,_warn=console.warn,_err=console.error;
-      console.log=function(){_log.apply(console,arguments);log([...arguments].join(' '),'ok')};
-      console.warn=function(){_warn.apply(console,arguments);log([...arguments].join(' '),'warn')};
-      console.error=function(){_err.apply(console,arguments);log([...arguments].join(' '),'err')};
-      window.addEventListener('error',e=>log('ERROR: '+e.message,'err'));
-      window.addEventListener('unhandledrejection',e=>log('REJECT: '+(e.reason?.message||e.reason),'err'));
-      log('Debug panel ready — place an order to see what happens','ok');
-    })();
-  </script>
-
 
 </body></html>
