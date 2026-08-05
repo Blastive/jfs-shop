@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<!-- saved from url=(0050)file:///C:/Users/panna/Downloads/shop-index_3.html -->
-<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Junior Film Show '26 — EIS '28 Shop</title>
-  <link rel="icon" type="image/png" href="file:///C:/Users/panna/Downloads/favicon.png">
-  <link href="./index_files/bootstrap.min.css" rel="stylesheet">
-  <link href="./index_files/css2" rel="stylesheet">
-  <script src="./index_files/supabase-js@2"></script>
-  <script src="./index_files/qrcode.js.download"></script>
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
   <style>
     :root{--m:#5F1431;--cream:#F0EBE3;--cl:#F7F4EF;--ch:#1a1a1a;--success:#2D6A4F;--danger:#9B2226;--warn-bg:rgba(233,196,74,.12);--warn-tx:#B8860B}
     *{margin:0;padding:0;box-sizing:border-box}
@@ -412,18 +412,18 @@
 
   <!-- NAV -->
   <nav class="sn" id="siteNav"><div class="ni">
-    <a class="nb" href="javascript:void(0)" onclick="switchPage(&#39;shop&#39;)">
-      <img class="nb-logo" src="file:///C:/Users/panna/Downloads/tiger-done.png" alt="EIS &#39;28">
+    <a class="nb" href="javascript:void(0)" onclick="switchPage('shop')">
+      <img class="nb-logo" src="tiger-done.png" alt="EIS '28">
       <span class="nb-t">Film Show '26</span>
     </a>
     <div class="nav-mid" id="navLinks">
-      <a href="javascript:void(0)" onclick="switchPage(&#39;shop&#39;)" class="active" data-page="shop" data-i18n="shop">Shop</a>
-      <a href="javascript:void(0)" onclick="switchPage(&#39;track&#39;)" data-page="track" data-i18n="track">Track Order</a>
+      <a href="javascript:void(0)" onclick="switchPage('shop')" class="active" data-page="shop" data-i18n="shop">Shop</a>
+      <a href="javascript:void(0)" onclick="switchPage('track')" data-page="track" data-i18n="track">Track Order</a>
     </div>
     <div class="nav-right">
-      <button class="notif-bell" id="notifBell" onclick="ackNotif()" style="display:none"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg><div class="notif-dot" id="notifDot"></div></button>
-<div class="lang-seg" id="langSeg"><button data-l="en" onclick="setLang(&#39;en&#39;)" class="on">EN</button><button data-l="th" onclick="setLang(&#39;th&#39;)">ไทย</button></div>
-      <img src="file:///C:/Users/panna/Downloads/eis-logo.png" alt="EIS">
+      <button class="notif-bell" id="notifBell" onclick="ackNotif()" style="display:none"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><div class="notif-dot" id="notifDot"></div></button>
+<div class="lang-seg" id="langSeg"><button data-l="en" onclick="setLang('en')">EN</button><button data-l="th" onclick="setLang('th')">ไทย</button></div>
+      <img src="eis-logo.png" alt="EIS">
       <button class="nt" id="navToggle" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
   </div></nav>
@@ -435,15 +435,15 @@
       <div class="proj-inner">
         <div class="pbe">EIS '28 · Class of 2028</div>
         <h1>Junior Film Show</h1>
-        <p>October 26, 2026 • Official Food &amp; Drinks</p>
+        <p>October 26, 2026 &bull; Official Food &amp; Drinks</p>
       </div>
     </div>
-    <div class="announce-bar" id="announceBar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 01-3.46 0"></path></svg><span id="announceText"></span></div>
-    <div class="cat-bar"><div class="cat-inner" id="catTabs"><button class="cat-btn active" onclick="filterCat(&#39;All&#39;)">All</button><button class="cat-btn" onclick="filterCat(&#39;Drinks&#39;)">Drinks</button><button class="cat-btn" onclick="filterCat(&#39;Food&#39;)">Food</button><button class="cat-btn" onclick="filterCat(&#39;Shaved Ice&#39;)">Shaved Ice</button><button class="cat-btn" onclick="filterCat(&#39;Sodas&#39;)">Sodas</button><button class="cat-btn" onclick="filterCat(&#39;Milky Drinks&#39;)">Milky Drinks</button><button class="cat-btn" onclick="filterCat(&#39;Mama&#39;)">Mama</button><button class="cat-btn" onclick="filterCat(&#39;Fried Foods&#39;)">Fried Foods</button><button class="cat-btn" onclick="filterCat(&#39;Popcorn&#39;)">Popcorn</button><button class="cat-btn" onclick="filterCat(&#39;Cotton Candy&#39;)">Cotton Candy</button></div></div>
+    <div class="announce-bar" id="announceBar"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg><span id="announceText"></span></div>
+    <div class="cat-bar"><div class="cat-inner" id="catTabs"></div></div>
     <div class="shop-body">
-      <div class="grid" id="productGrid"><div class="card"><div class="card-img"><div class="ph"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"></rect><path d="M7 2v20M17 2v20M2 12h20"></path></svg></div><div class="card-badge">Popular</div></div><div class="card-body"><div class="card-name">Shaved Ice</div><div class="card-desc">Refreshing shaved ice topped with sweet syrup.</div><div class="card-stock"></div><div class="card-bottom"><div class="card-price">฿30</div><button class="card-add" onclick="addItem(&#39;shaved-ice&#39;)" title="Add to cart"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button></div></div></div><div class="card"><div class="card-img"><div class="ph"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"></rect><path d="M7 2v20M17 2v20M2 12h20"></path></svg></div></div><div class="card-body"><div class="card-name">Soda</div><div class="card-desc">Ice-cold fizzy soda to cool you down.</div><div class="card-stock"></div><div class="card-bottom"><div class="card-price">฿25</div><button class="card-add" onclick="addItem(&#39;sodas&#39;)" title="Add to cart"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button></div></div></div><div class="card"><div class="card-img"><div class="ph"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"></rect><path d="M7 2v20M17 2v20M2 12h20"></path></svg></div></div><div class="card-body"><div class="card-name">Milky Drink</div><div class="card-desc">Sweet, creamy milk-based drink.</div><div class="card-stock"></div><div class="card-bottom"><div class="card-price">฿35</div><button class="card-add" onclick="addItem(&#39;milky-drinks&#39;)" title="Add to cart"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button></div></div></div><div class="card"><div class="card-img"><div class="ph"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"></rect><path d="M7 2v20M17 2v20M2 12h20"></path></svg></div></div><div class="card-body"><div class="card-name">Mama</div><div class="card-desc">Hot instant noodles, cooked to order.</div><div class="card-stock"></div><div class="card-bottom"><div class="card-price">฿40</div><button class="card-add" onclick="addItem(&#39;mama&#39;)" title="Add to cart"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button></div></div></div><div class="card"><div class="card-img"><div class="ph"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"></rect><path d="M7 2v20M17 2v20M2 12h20"></path></svg></div></div><div class="card-body"><div class="card-name">Fries</div><div class="card-desc">Crispy golden French fries.</div><div class="card-stock"></div><div class="card-bottom"><div class="card-price">฿30</div><button class="card-add" onclick="addItem(&#39;fries&#39;)" title="Add to cart"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button></div></div></div><div class="card"><div class="card-img"><div class="ph"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"></rect><path d="M7 2v20M17 2v20M2 12h20"></path></svg></div></div><div class="card-body"><div class="card-name">Chicken Nuggets</div><div class="card-desc">Crispy fried chicken nuggets.</div><div class="card-stock"></div><div class="card-bottom"><div class="card-price">฿40</div><button class="card-add" onclick="addItem(&#39;nuggets&#39;)" title="Add to cart"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button></div></div></div><div class="card"><div class="card-img"><div class="ph"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"></rect><path d="M7 2v20M17 2v20M2 12h20"></path></svg></div><div class="card-badge">New</div></div><div class="card-body"><div class="card-name">Chicken Pop</div><div class="card-desc">Bite-sized crispy popcorn chicken.</div><div class="card-stock"></div><div class="card-bottom"><div class="card-price">฿40</div><button class="card-add" onclick="addItem(&#39;chicken-pop&#39;)" title="Add to cart"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button></div></div></div><div class="card"><div class="card-img"><div class="ph"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"></rect><path d="M7 2v20M17 2v20M2 12h20"></path></svg></div></div><div class="card-body"><div class="card-name">Taro</div><div class="card-desc">Crispy fried taro sticks.</div><div class="card-stock"></div><div class="card-bottom"><div class="card-price">฿30</div><button class="card-add" onclick="addItem(&#39;taro&#39;)" title="Add to cart"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button></div></div></div><div class="card"><div class="card-img"><div class="ph"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"></rect><path d="M7 2v20M17 2v20M2 12h20"></path></svg></div></div><div class="card-body"><div class="card-name">Popcorn</div><div class="card-desc">Freshly popped, warm and crunchy.</div><div class="card-stock"></div><div class="card-bottom"><div class="card-price">฿30</div><button class="card-add" onclick="addItem(&#39;popcorn&#39;)" title="Add to cart"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button></div></div></div><div class="card"><div class="card-img"><div class="ph"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2" y="2" width="20" height="20" rx="2.18"></rect><path d="M7 2v20M17 2v20M2 12h20"></path></svg></div></div><div class="card-body"><div class="card-name">Cotton Candy</div><div class="card-desc">Fluffy spun sugar cotton candy.</div><div class="card-stock"></div><div class="card-bottom"><div class="card-price">฿25</div><button class="card-add" onclick="addItem(&#39;cotton-candy&#39;)" title="Add to cart"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button></div></div></div></div>
+      <div class="grid" id="productGrid"></div>
       <div style="margin-top:1.5rem;padding:.7rem 1rem;background:rgba(95,20,49,.04);border-radius:4px;display:flex;align-items:center;justify-content:center;gap:.5rem;flex-wrap:wrap">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--m)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"></path></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--m)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
         <span style="font-size:.7rem;color:var(--m)">Need help with your order? Call us at <strong>0XX-XXX-XXXX</strong></span>
       </div>
     </div>
@@ -457,7 +457,7 @@
     </div>
     <div class="track-wrap">
       <div style="display:flex;gap:.5rem;margin-bottom:1rem">
-        <input type="text" id="trackInput" placeholder="e.g. JFS-001 or just 1" style="flex:1;padding:.6rem .8rem;border:1.5px solid rgba(95,20,49,.14);border-radius:4px;font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;font-size:.82rem;background:#fff">
+        <input type="text" id="trackInput" placeholder="e.g. JFS-001 or just 1" style="flex:1;padding:.6rem .8rem;border:1.5px solid rgba(95,20,49,.14);border-radius:4px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:.82rem;background:#fff">
         <button class="btn-full" style="width:auto;padding:.6rem 1.5rem;border-radius:4px" onclick="trackOrder()" data-i18n="trackBtn">Track</button>
       </div>
       <div id="myOrdersList"></div>
@@ -471,15 +471,15 @@
     <div class="adm-wrap">
       <div id="admLogin" class="adm-login">
         <h3>Admin Access</h3>
-        <div class="fg"><label>Email</label><input type="email" id="admEmail" placeholder="admin@example.com" onkeydown="if(event.key===&#39;Enter&#39;)document.getElementById(&#39;admPass&#39;).focus()"></div>
-        <div class="fg"><label>Password</label><input type="password" id="admPass" placeholder="Enter password" onkeydown="if(event.key===&#39;Enter&#39;)admDoLogin()"></div>
+        <div class="fg"><label>Email</label><input type="email" id="admEmail" placeholder="admin@example.com" onkeydown="if(event.key==='Enter')document.getElementById('admPass').focus()"></div>
+        <div class="fg"><label>Password</label><input type="password" id="admPass" placeholder="Enter password" onkeydown="if(event.key==='Enter')admDoLogin()"></div>
         <button class="btn-full" style="margin-top:.5rem" id="admLoginBtn" onclick="admDoLogin()">Sign In</button>
         <p style="font-size:.58rem;color:#aaa;text-align:center;margin-top:.6rem">Create your admin account in Supabase → Authentication → Users.<br>Or use the offline password: <code>eis28film</code></p>
       </div>
       <div id="admDash" style="display:none">
         <div class="reveal" id="shopFilterBar" style="margin-bottom:.6rem"><select id="shopFilter" onchange="setAdmShop(this.value)" style="width:100%;padding:.5rem .7rem;border:1.5px solid rgba(95,20,49,.15);border-radius:4px;font-family:Inter,Noto Sans Thai,sans-serif;font-weight:700;font-size:.74rem;color:var(--m);background:#fff;appearance:auto"><option value="all">All Shops</option></select></div>
         <div class="ann-ctrl reveal" id="annCtrl">
-          <input type="text" id="annInput" placeholder="Type an announcement for customers…" onkeydown="if(event.key===&#39;Enter&#39;)setAnnounce()">
+          <input type="text" id="annInput" placeholder="Type an announcement for customers…" onkeydown="if(event.key==='Enter')setAnnounce()">
           <button onclick="setAnnounce()" style="background:var(--warn-bg);color:#8a6d20">📢 Set</button>
           <button onclick="clearAnnounce()" style="background:rgba(155,34,38,.08);color:var(--danger)">Clear</button>
         </div>
@@ -515,14 +515,14 @@
 
   <!-- FLOATING CART -->
   <button class="cart-fab" id="cartFab" onclick="openDrw()">
-    <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"></path></svg>
+    <svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
     <div class="cart-badge" id="cBadge" style="display:none">0</div>
   </button>
 
   <!-- CART DRAWER -->
   <div class="dov" id="drwOv" onclick="closeDrw()"></div>
   <div class="drw" id="drw">
-    <div class="drw-head"><h3><span data-i18n="basket">Your Basket</span> <span id="drwCount"></span></h3><button class="drw-x" onclick="closeDrw()">×</button></div>
+    <div class="drw-head"><h3><span data-i18n="basket">Your Basket</span> <span id="drwCount"></span></h3><button class="drw-x" onclick="closeDrw()">&times;</button></div>
     <div class="drw-body" id="drwBody"></div>
     <div class="drw-foot" id="drwFoot" style="display:none">
       <div class="df-row"><span class="df-lbl">Total</span><span class="df-val" id="drwTotal">฿0</span></div>
@@ -533,60 +533,60 @@
   <!-- CHECKOUT -->
   <div class="co-ov" id="coOv">
     <div class="co-panel">
-      <div class="co-hd"><h3>Checkout</h3><button class="co-x" onclick="closeCo()">×</button></div>
+      <div class="co-hd"><h3>Checkout</h3><button class="co-x" onclick="closeCo()">&times;</button></div>
       <div class="co-bd">
         <div class="co-sec"><h4>Order Summary</h4><div id="coItems"></div>
           <div style="display:flex;justify-content:space-between;padding:.5rem 0 0;border-top:2px solid var(--m);margin-top:.3rem">
-            <span style="font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;font-weight:700;color:var(--m)">Total</span>
-            <span style="font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;font-weight:700;font-size:1.2rem;color:var(--m)" id="coTotal">฿0</span>
+            <span style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;color:var(--m)">Total</span>
+            <span style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;font-size:1.2rem;color:var(--m)" id="coTotal">฿0</span>
           </div>
         </div>
         <div class="co-sec"><h4 data-i18n="yourInfo">Your Information</h4>
           <div class="fg-row"><div class="fg"><label data-i18n="name">Full Name</label><input type="text" id="coName" placeholder="Your name" data-i18n-ph="namePh"></div><div class="fg"><label data-i18n="cls">Class / Section</label><input type="text" id="coClass" placeholder="e.g. 11A" data-i18n-ph="clsPh"></div></div>
-          <div class="co-type" id="coTypeSel"><button type="button" data-ct="room" class="on" onclick="setCoType(&#39;room&#39;)" data-i18n="msTeacher">Middle School / Teacher</button><button type="button" data-ct="audi" onclick="setCoType(&#39;audi&#39;)" data-i18n="highSchool">High School</button></div>
+          <div class="co-type" id="coTypeSel"><button type="button" data-ct="room" class="on" onclick="setCoType('room')" data-i18n="msTeacher">Middle School / Teacher</button><button type="button" data-ct="audi" onclick="setCoType('audi')" data-i18n="highSchool">High School</button></div>
           <div class="fg" id="coRoomFg"><label data-i18n="room">Deliver to Room</label><input type="text" id="coRoom" placeholder="e.g. 301" data-i18n-ph="roomPh"></div>
           <div class="audi-wrap" id="audiPick" style="display:none"><div class="audi-screen" data-i18n="screen">S C R E E N</div><div class="audi-screen-sub" data-i18n="audiHint">Tap the area where you're sitting</div><div class="audi-blocks" id="audiBlocks"></div><div class="audi-conf empty" id="audiConf" data-i18n="pickPrompt">Tap your seat area</div></div>
           <div class="fg"><label data-i18n="notes">Notes (optional)</label><textarea id="coNotes" placeholder="Allergies, special requests, etc." data-i18n-ph="notesPh"></textarea></div>
           <div style="background:rgba(95,20,49,.04);border-radius:4px;padding:.6rem .8rem;display:flex;align-items:center;gap:.5rem;margin-top:.3rem">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--m)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"></path></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--m)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
             <span style="font-size:.68rem;color:var(--m)"><span data-i18n="callUs">Questions? Call us:</span> <strong id="contactPhone">0XX-XXX-XXXX</strong></span>
           </div>
         </div>
         <div class="co-sec"><h4 data-i18n="payMethod">Payment Method</h4>
           <div style="display:flex;gap:.5rem;margin-bottom:1rem" id="payMethodBtns">
-            <button onclick="setPayMethod(&#39;qr&#39;)" id="payBtnQR" style="flex:1;padding:.7rem;border-radius:4px;border:2px solid var(--m);background:var(--m);color:#fff;font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;font-weight:700;font-size:.72rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:all .2s"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span data-i18n="qr">PromptPay QR</span></button>
-            <button onclick="setPayMethod(&#39;cash&#39;)" id="payBtnCash" style="flex:1;padding:.7rem;border-radius:4px;border:2px solid rgba(95,20,49,.15);background:#fff;color:var(--ch);font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;font-weight:700;font-size:.72rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:all .2s"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="3"></circle><path d="M2 10h2M20 10h2"></path></svg><span data-i18n="cash">Cash on Delivery</span></button>
+            <button onclick="setPayMethod('qr')" id="payBtnQR" style="flex:1;padding:.7rem;border-radius:4px;border:2px solid var(--m);background:var(--m);color:#fff;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;font-size:.72rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:all .2s"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span data-i18n="qr">PromptPay QR</span></button>
+            <button onclick="setPayMethod('cash')" id="payBtnCash" style="flex:1;padding:.7rem;border-radius:4px;border:2px solid rgba(95,20,49,.15);background:#fff;color:var(--ch);font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;font-size:.72rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.4rem;transition:all .2s"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M2 10h2M20 10h2"/></svg><span data-i18n="cash">Cash on Delivery</span></button>
           </div>
           <!-- QR section (shown when QR selected) -->
           <div id="payQRSection">
             <div class="qr-box">
-              <div class="qr-ph" id="ppQRImg"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span>QR Code</span></div>
+              <div class="qr-ph" id="ppQRImg"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span>QR Code</span></div>
               <div class="qr-lbl"><span data-i18n="payToLbl">Pay to:</span> <strong id="ppName">Class Treasurer</strong></div>
               <div class="qr-amt" id="coQRAmt">฿0</div>
               <div class="qr-note" data-i18n="scanNote">Scan with any Thai banking app.</div>
-              <button onclick="downloadQR()" style="margin-top:.6rem;padding:.4rem 1.2rem;border-radius:100px;border:1.5px solid var(--m);background:none;font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;font-size:.65rem;font-weight:600;color:var(--m);cursor:pointer;display:inline-flex;align-items:center;gap:.3rem;transition:background .2s,color .2s" onmouseover="this.style.background=&#39;var(--m)&#39;;this.style.color=&#39;#fff&#39;" onmouseout="this.style.background=&#39;none&#39;;this.style.color=&#39;var(--m)&#39;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg><span data-i18n="qrSaveBtn">Save QR Code</span></button>
+              <button onclick="downloadQR()" style="margin-top:.6rem;padding:.4rem 1.2rem;border-radius:100px;border:1.5px solid var(--m);background:none;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:.65rem;font-weight:600;color:var(--m);cursor:pointer;display:inline-flex;align-items:center;gap:.3rem;transition:background .2s,color .2s" onmouseover="this.style.background='var(--m)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='var(--m)'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span data-i18n="qrSaveBtn">Save QR Code</span></button>
             </div>
-            <div style="margin-top:.8rem"><h4 style="font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;font-size:.85rem;font-weight:700;color:var(--m);margin-bottom:.5rem" data-i18n="uploadSlip">Upload Payment Slip</h4>
-              <div class="slip-drop" id="coSlipDrop" onclick="document.getElementById(&#39;coSlipIn&#39;).click()">
-                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            <div style="margin-top:.8rem"><h4 style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:.85rem;font-weight:700;color:var(--m);margin-bottom:.5rem" data-i18n="uploadSlip">Upload Payment Slip</h4>
+              <div class="slip-drop" id="coSlipDrop" onclick="document.getElementById('coSlipIn').click()">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                 <p data-i18n="uploadText">Click to upload or drag &amp; drop</p>
                 <p class="slip-hint" id="slipHint" style="font-size:.58rem;color:var(--danger);font-weight:600;margin-top:.3rem;display:none" data-i18n="slipRequired">Upload your payment slip to place the order</p><small>PNG, JPG up to 5MB</small>
                 <input type="file" id="coSlipIn" accept="image/*" style="display:none">
               </div>
-              <div class="slip-prev" id="coSlipPrev"><img id="coSlipImg" src="file:///C:/Users/panna/Downloads/shop-index_3.html" alt="Slip"></div>
+              <div class="slip-prev" id="coSlipPrev"><img id="coSlipImg" src="" alt="Slip"></div>
             </div>
           </div>
           <!-- Cash section (shown when Cash selected) -->
           <div id="payCashSection" style="display:none">
             <div style="text-align:center;padding:1.5rem;background:#fff;border-radius:4px;border:1px solid rgba(95,20,49,.06)">
-              <div style="width:48px;height:48px;border-radius:50%;background:rgba(45,106,79,.1);display:flex;align-items:center;justify-content:center;margin:0 auto .8rem"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="3"></circle></svg></div>
-              <div style="font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;font-weight:700;color:var(--m);font-size:1rem;margin-bottom:.3rem" data-i18n="payWhenDeliver">Pay When We Deliver</div>
-              <div style="font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;font-weight:700;font-size:1.5rem;color:var(--m);margin-bottom:.3rem" id="coCashAmt">฿0</div>
+              <div style="width:48px;height:48px;border-radius:50%;background:rgba(45,106,79,.1);display:flex;align-items:center;justify-content:center;margin:0 auto .8rem"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg></div>
+              <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;color:var(--m);font-size:1rem;margin-bottom:.3rem" data-i18n="payWhenDeliver">Pay When We Deliver</div>
+              <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-weight:700;font-size:1.5rem;color:var(--m);margin-bottom:.3rem" id="coCashAmt">฿0</div>
               <div style="font-size:.68rem;color:#999;max-width:250px;margin:0 auto" data-i18n="cashNote">Please have the exact amount ready. Our delivery person will collect payment at your classroom.</div>
             </div>
           </div>
         </div>
-        <button class="btn-full" id="coSubmit" onclick="submitOrder()" disabled="" data-i18n="placeOrder">Place Order</button>
+        <button class="btn-full" id="coSubmit" onclick="submitOrder()" disabled data-i18n="placeOrder">Place Order</button>
       </div>
     </div>
   </div>
@@ -594,7 +594,7 @@
   <!-- THANK YOU -->
   <div class="ty-ov" id="tyOv">
     <div class="ty-box">
-      <div class="ty-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+      <div class="ty-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
       <h2 data-i18n="thankYou">Thank You!</h2>
       <div class="ty-queue" id="tyQueue">#001</div>
       <div class="ty-id" id="tyId">Order JFS-001</div>
@@ -607,7 +607,7 @@
   <!-- OPTION PICKER -->
   <div class="modal-ov" id="optMod">
     <div class="modal-box" style="max-width:360px">
-      <button class="modal-x" onclick="closeOptPicker()">×</button>
+      <button class="modal-x" onclick="closeOptPicker()">&times;</button>
       <div id="optContent"></div>
     </div>
   </div>
@@ -615,8 +615,8 @@
   <!-- SALES REPORT -->
   <div class="modal-ov" id="salesMod">
     <div class="modal-box" style="max-width:560px;max-height:85vh;overflow-y:auto">
-      <button class="modal-x" onclick="closeSalesReport()">×</button>
-      <h3 style="font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;color:var(--m);margin-bottom:.15rem;font-size:1.1rem">Sales Report</h3>
+      <button class="modal-x" onclick="closeSalesReport()">&times;</button>
+      <h3 style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:var(--m);margin-bottom:.15rem;font-size:1.1rem">Sales Report</h3>
       <p style="font-size:.6rem;color:#999;margin-bottom:.8rem" id="srTime"></p>
       <div id="srBody"></div>
     </div>
@@ -625,8 +625,8 @@
   <!-- MENU EDITOR -->
   <div class="modal-ov" id="menuMod">
     <div class="modal-box" style="max-width:640px">
-      <button class="modal-x" onclick="closeMenu()">×</button>
-      <h3 style="font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;color:var(--m);margin-bottom:.2rem;font-size:1.1rem">Edit Menu</h3>
+      <button class="modal-x" onclick="closeMenu()">&times;</button>
+      <h3 style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:var(--m);margin-bottom:.2rem;font-size:1.1rem">Edit Menu</h3>
       <p style="font-size:.66rem;color:#999;margin-bottom:.8rem">Add items and change prices &amp; stock. Saving syncs to all devices when the <code>catalog</code> table exists (see the SQL file).</p>
       <div id="menuList"></div>
       <div class="me-bar">
@@ -639,9 +639,9 @@
   <!-- SLIP MODAL -->
   <div class="modal-ov" id="slipMod">
     <div class="modal-box">
-      <button class="modal-x" onclick="document.getElementById(&#39;slipMod&#39;).classList.remove(&#39;open&#39;)">×</button>
-      <h3 style="font-family:&#39;Helvetica Neue&#39;,Helvetica,Arial,sans-serif;color:var(--m);margin-bottom:.7rem;font-size:1rem">Payment Slip</h3>
-      <img id="mSlipImg" src="file:///C:/Users/panna/Downloads/shop-index_3.html" alt="Slip" style="width:100%;border-radius:4px">
+      <button class="modal-x" onclick="document.getElementById('slipMod').classList.remove('open')">&times;</button>
+      <h3 style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:var(--m);margin-bottom:.7rem;font-size:1rem">Payment Slip</h3>
+      <img id="mSlipImg" src="" alt="Slip" style="width:100%;border-radius:4px">
       <div id="mSlipInfo" style="margin-top:.7rem;font-size:.72rem;color:#666"></div>
     </div>
   </div>
@@ -653,11 +653,11 @@
     <div class="ft-inner">
       <div class="ft-brand"><span class="ft-name">Junior Film Show '26</span><span class="ft-sub">EIS '28 · Class of 2028</span></div>
       <div class="ft-social">
-        <a href="https://www.instagram.com/eis28.gallery/" target="_blank" rel="noopener" class="ig" title="Instagram"><svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"></path></svg></a>
-        <a href="mailto:eis28class@gmail.com" class="gm" title="Email"><svg viewBox="0 0 24 24"><path fill="#EA4335" d="M1 5.64L12 13.14 23 5.64V4.5C23 3.12 21.88 2 20.5 2H3.5C2.12 2 1 3.12 1 4.5V5.64Z"></path><path fill="#4285F4" d="M1 5.64V19.5C1 20.88 2.12 22 3.5 22H8V12.28L1 5.64Z"></path><path fill="#34A853" d="M16 22H20.5C21.88 22 23 20.88 23 19.5V5.64L16 12.28V22Z"></path><path fill="#FBBC04" d="M8 12.28V22H16V12.28L12 13.14 8 12.28Z"></path></svg></a>
+        <a href="https://www.instagram.com/eis28.gallery/" target="_blank" rel="noopener" class="ig" title="Instagram"><svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+        <a href="mailto:eis28class@gmail.com" class="gm" title="Email"><svg viewBox="0 0 24 24"><path fill="#EA4335" d="M1 5.64L12 13.14 23 5.64V4.5C23 3.12 21.88 2 20.5 2H3.5C2.12 2 1 3.12 1 4.5V5.64Z"/><path fill="#4285F4" d="M1 5.64V19.5C1 20.88 2.12 22 3.5 22H8V12.28L1 5.64Z"/><path fill="#34A853" d="M16 22H20.5C21.88 22 23 20.88 23 19.5V5.64L16 12.28V22Z"/><path fill="#FBBC04" d="M8 12.28V22H16V12.28L12 13.14 8 12.28Z"/></svg></a>
       </div>
     </div>
-    <div class="ft-bottom"><div class="ft-copy">© 2026 EIS '28. All rights reserved.</div><div class="ft-desc">Official Junior Film Show Shop</div></div>
+    <div class="ft-bottom"><div class="ft-copy">&copy; 2026 EIS '28. All rights reserved.</div><div class="ft-desc">Official Junior Film Show Shop</div></div>
   </footer>
 
 
@@ -1766,5 +1766,5 @@
     },6000);
   })();
   </script>
-
-</body></html>
+</body>
+</html>
