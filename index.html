@@ -796,16 +796,50 @@
       }catch(e){console.warn('Sync failed:',e)}finally{unlockSync()}
     }
 
+    // Upload a base64 slip image to Supabase Storage, return public URL
+    async function uploadSlipToStorage(base64DataUrl,filename){
+      if(!sb)return null;
+      try{
+        const res=await fetch(base64DataUrl);
+        const blob=await res.blob();
+        const path='slips/'+filename;
+        const{error}=await sb.storage.from('slips').upload(path,blob,{contentType:blob.type,upsert:true});
+        if(error){console.warn('Slip upload error:',error.message);return null}
+        const{data:urlData}=sb.storage.from('slips').getPublicUrl(path);
+        return urlData?.publicUrl||null;
+      }catch(e){console.warn('Slip upload failed:',e);return null}
+    }
+
     // Push a new order to Supabase
     async function pushNewOrder(order){
       if(!useSB)return;
       try{
-        const slip=order.slips&&order.slips.length?JSON.stringify(order.slips):(order.slip||'');
+        // Upload slip images to Storage instead of embedding base64 in the row
+        let slipValue='';
+        if(order.slips&&order.slips.length){
+          const uploaded=[];
+          for(const s of order.slips){
+            if(s.data&&s.data.startsWith('data:')){
+              const fname=Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
+              const url=await uploadSlipToStorage(s.data,fname);
+              uploaded.push({url:url||'[upload-failed]',ts:s.ts,label:s.label});
+            }else{
+              uploaded.push(s);
+            }
+          }
+          slipValue=JSON.stringify(uploaded);
+        }else if(order.slip&&order.slip.startsWith('data:')){
+          const fname=Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.jpg';
+          const url=await uploadSlipToStorage(order.slip,fname);
+          slipValue=url||'';
+        }
         const{data,error}=await sb.from('orders').insert({
           buyer_name:order.buyer.name,buyer_class:order.buyer.cls,
           buyer_contact:order.buyer.loc?JSON.stringify(order.buyer.loc):'',
           buyer_room:order.buyer.room,buyer_notes:order.buyer.notes||'',
-          items:order.items,total:order.total,slip_url:slip,status:'pending'
+          items:order.items,total:order.total,slip_url:slipValue,
+          payment_method:order.payment_method||'qr',
+          status:'pending'
         }).select().single();
         if(error){console.warn('Push failed:',error.message);return false}
         if(data){order.queue_num=data.queue_num;order.id='JFS-'+String(data.queue_num).padStart(3,'0')}
@@ -1553,14 +1587,17 @@
       if(o.slip&&(o.slip.startsWith('data:')||o.slip.startsWith('http')))return[{data:o.slip,ts:o.ts||'',label:'Original'}];
       return[];
     }
+    function slipSrc(s2){return s2.url||s2.data||''}
     function renderSlipStack(slips,idx){
       if(!slips.length)return'';
-      return'<div class="slip-stack">'+slips.map((s2,si)=>{const hasImg=s2.data&&s2.data!=='[stored]';
+      return'<div class="slip-stack">'+slips.map((s2,si)=>{
+        const src=slipSrc(s2);
+        const hasImg=src&&src!=='[stored]'&&src!=='[local]'&&src!=='[upload-failed]';
         const isReply=si>0;const lbl=isReply?'Reply #'+si:'Original';
         const cls=isReply?'reply':'original';
         const ts=s2.ts?new Date(s2.ts).toLocaleString():'';
         const msgHtml=s2.msg?`<div style="font-size:.65rem;color:#555;margin-top:.25rem;padding:.4rem .5rem;background:rgba(95,20,49,.03);border-radius:6px;line-height:1.45">💬 ${s2.msg}</div>`:'';
-        return`<div class="slip-entry"><div class="slip-label ${cls}"><span class="slip-tag">${lbl}</span><span class="slip-ts">${ts}</span></div>${hasImg?`<img src="${s2.data}" style="width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlipImg('${s2.data.replace(/'/g,'')}')">`:`<div style="padding:.5rem;background:#f5f0eb;border-radius:6px;font-size:.6rem;color:#999;text-align:center;cursor:pointer" onclick="fetchSlipImage(this,${idx>=0?idx:'null'})">Slip uploaded \u2713 <span style="color:var(--m)">(tap to view)</span></div>`}`+msgHtml+'</div>';
+        return`<div class="slip-entry"><div class="slip-label ${cls}"><span class="slip-tag">${lbl}</span><span class="slip-ts">${ts}</span></div>${hasImg?`<img src="${src}" style="width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid rgba(95,20,49,.08);cursor:pointer" onclick="showSlipImg('${src.replace(/'/g,'')}')">`:`<div style="padding:.5rem;background:#f5f0eb;border-radius:6px;font-size:.6rem;color:#999;text-align:center;cursor:pointer" onclick="fetchSlipImage(this,${idx>=0?idx:'null'})">Slip uploaded \u2713 <span style="color:var(--m)">(tap to view)</span></div>`}`+msgHtml+'</div>';
       }).join('')+'</div>';
     }
     window.fetchSlipImage=async function(el,idx){
@@ -1590,13 +1627,22 @@
       const orders=getOrders();const o=orders.find(x=>x.queue_num===qnum);
       if(!o){toast(t('orderNotFound'));return}
       const existing=getSlips(o);
-      existing.push({data:newData,ts:new Date().toISOString(),label:'Reply',msg:msg||''});
+      // Upload new slip to Storage instead of embedding base64
+      let slipEntry={data:newData,ts:new Date().toISOString(),label:'Reply',msg:msg||''};
+      if(useSB&&sb&&newData&&newData.startsWith('data:')){
+        const fname='resub_'+qnum+'_'+Date.now()+'.jpg';
+        const url=await uploadSlipToStorage(newData,fname);
+        if(url)slipEntry={url:url,ts:slipEntry.ts,label:'Reply',msg:msg||''};
+      }
+      existing.push(slipEntry);
       o.slips=existing;o.slip=newData;
       o.status='pending';o.resubmitted=true;
       o.reject_reason='';o.report_reason='';o.reported=false;
       saveOrders(orders);
       if(useSB&&sb){
-        await pushUpdate(o,{status:'pending',slip_url:JSON.stringify(existing)});
+        // Strip base64 data before pushing to Supabase
+        const cleanSlips=existing.map(s=>s.url?{url:s.url,ts:s.ts,label:s.label,msg:s.msg||''}:s.data&&s.data.length>200?{url:'[local]',ts:s.ts,label:s.label,msg:s.msg||''}:s);
+        await pushUpdate(o,{status:'pending',slip_url:JSON.stringify(cleanSlips)});
       }
       renderMyOrders();
       if(lastTrack===qnum){const upd=getOrders().find(x=>x.queue_num===qnum);if(upd)document.getElementById('trackResult').innerHTML=trackCardHTML(upd)}
