@@ -1786,4 +1786,10 @@
       if(!onTrack&&!onShop)return;
       if(useSB){try{await syncFromSupabase()}catch(e){}}
       checkOrderNotifs();
-      if(onTrack){renderMyOrders();if(lastTrack!=null){const o=getOrders().find(x=>x.queue_num===lastTrack);if(o)document.getElementById('trackResult').innerHTML=trackCardHTM
+      if(onTrack){renderMyOrders();if(lastTrack!=null){const o=getOrders().find(x=>x.queue_num===lastTrack);if(o)document.getElementById('trackResult').innerHTML=trackCardHTML(o)}}
+      else if(onShop&&!document.getElementById('coOv').classList.contains('open')){renderGrid()}
+    },6000);
+  })();
+  </script>
+</body>
+</html>
