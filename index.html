@@ -1009,15 +1009,16 @@
     };
 
     function refreshCoSummary(){document.getElementById('coItems').innerHTML=Object.entries(cart).map(([k,q])=>{const p=products.find(x=>x.id===cartBaseId(k));if(!p)return'';const ex=cartExtraPerUnit(k);const m=cartMeta[k];const optsStr=m&&m.picks&&m.picks.length?' ('+optLabel(m.picks)+')':'';return`<div style="display:flex;justify-content:space-between;padding:.3rem 0;font-size:.75rem;border-bottom:1px solid rgba(95,20,49,.04)"><span>${pname(p)}${optsStr} \u00d7${q}</span><span style="font-weight:600;color:var(--m)">\u0e3f${(p.price+ex)*q}</span></div>`}).join('')}
-    window.openCo=function(){closeDrw();if(!cCount())return;refreshCoSummary();const t=cTotal();document.getElementById('coTotal').textContent='฿'+t;document.getElementById('coQRAmt').textContent='฿'+t;document.getElementById('coCashAmt').textContent='฿'+t;renderPPQR(t);slipData='';document.getElementById('coSlipPrev').style.display='none';document.getElementById('coSlipIn').value='';payMethod='cash';setPayMethod('cash');updCoBtn();coLoc=null;coType='room';renderAudiPicker();setCoType('room');document.getElementById('coOv').classList.add('open');document.body.style.overflow='hidden'};
+    window.openCo=function(){closeDrw();if(!cCount())return;refreshCoSummary();const t=cTotal();document.getElementById('coTotal').textContent='฿'+t;const qrAmt=document.getElementById('coQRAmt');if(qrAmt)qrAmt.textContent='฿'+t;document.getElementById('coCashAmt').textContent='฿'+t;slipData='';const slipPrev=document.getElementById('coSlipPrev');if(slipPrev)slipPrev.style.display='none';const slipIn=document.getElementById('coSlipIn');if(slipIn)slipIn.value='';payMethod='cash';setPayMethod('cash');updCoBtn();coLoc=null;coType='room';renderAudiPicker();setCoType('room');document.getElementById('coOv').classList.add('open');document.body.style.overflow='hidden'};
     window.closeCo=function(){document.getElementById('coOv').classList.remove('open');document.body.style.overflow=''};
 
+    // Slip upload removed (cash-only) — guard against missing elements
     const coSlipIn=document.getElementById('coSlipIn');
-    coSlipIn.addEventListener('change',function(e){const f=e.target.files[0];if(!f)return;if(f.size>5e6){toast('Max 5MB');return}const r=new FileReader();r.onload=ev=>{slipData=ev.target.result;document.getElementById('coSlipImg').src=slipData;document.getElementById('coSlipPrev').style.display='block';updCoBtn()};r.readAsDataURL(f)});
+    if(coSlipIn){coSlipIn.addEventListener('change',function(e){const f=e.target.files[0];if(!f)return;if(f.size>5e6){toast('Max 5MB');return}const r=new FileReader();r.onload=ev=>{slipData=ev.target.result;const img=document.getElementById('coSlipImg');if(img)img.src=slipData;const prev=document.getElementById('coSlipPrev');if(prev)prev.style.display='block';updCoBtn()};r.readAsDataURL(f)})}
     const csd=document.getElementById('coSlipDrop');
-    csd.addEventListener('dragover',e=>{e.preventDefault();csd.style.borderColor='var(--m)'});
+    if(csd){csd.addEventListener('dragover',e=>{e.preventDefault();csd.style.borderColor='var(--m)'});
     csd.addEventListener('dragleave',()=>csd.style.borderColor='');
-    csd.addEventListener('drop',e=>{e.preventDefault();csd.style.borderColor='';const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const dt=new DataTransfer();dt.items.add(f);coSlipIn.files=dt.files;coSlipIn.dispatchEvent(new Event('change'))}});
+    csd.addEventListener('drop',e=>{e.preventDefault();csd.style.borderColor='';const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const dt=new DataTransfer();dt.items.add(f);coSlipIn.files=dt.files;coSlipIn.dispatchEvent(new Event('change'))}});}
 
     function updCoBtn(){const base=cCount()&&document.getElementById('coName').value.trim()&&document.getElementById('coClass').value.trim();const locOk=coType==='audi'?!!coLoc:document.getElementById('coRoom').value.trim();document.getElementById('coSubmit').disabled=!(base&&locOk)}
     ['coName','coClass','coRoom'].forEach(id=>{const el=document.getElementById(id);el.addEventListener('input',updCoBtn);el.addEventListener('change',updCoBtn)});
@@ -1788,10 +1789,4 @@
       if(!onTrack&&!onShop)return;
       if(useSB){try{await syncFromSupabase()}catch(e){}}
       checkOrderNotifs();
-      if(onTrack){renderMyOrders();if(lastTrack!=null){const o=getOrders().find(x=>x.queue_num===lastTrack);if(o)document.getElementById('trackResult').innerHTML=trackCardHTML(o)}}
-      else if(onShop&&!document.getElementById('coOv').classList.contains('open')){renderGrid()}
-    },6000);
-  })();
-  </script>
-</body>
-</html>
+      if(onTrack){renderMyOrders();if(lastTrack!=null){const o=getOrders().find(x=>x.queue_num===lastTrack);
