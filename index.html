@@ -996,16 +996,13 @@
     let payMethod='cash'; // cash only
     window.setPayMethod=function(m){
       payMethod=m;
-      document.getElementById('payQRSection').style.display=m==='qr'?'block':'none';
-      document.getElementById('payCashSection').style.display=m==='cash'?'block':'none';
-      document.getElementById('payBtnQR').style.background=m==='qr'?'var(--m)':'#fff';
-      document.getElementById('payBtnQR').style.color=m==='qr'?'#fff':'var(--ch)';
-      document.getElementById('payBtnQR').style.borderColor=m==='qr'?'var(--m)':'rgba(95,20,49,.15)';
-      document.getElementById('payBtnCash').style.background=m==='cash'?'var(--m)':'#fff';
-      document.getElementById('payBtnCash').style.color=m==='cash'?'#fff':'var(--ch)';
-      document.getElementById('payBtnCash').style.borderColor=m==='cash'?'var(--m)':'rgba(95,20,49,.15)';
-      if(m==='qr')renderPPQR(cTotal());
-      updCoBtn(); // re-evaluate slip requirement
+      const qrSec=document.getElementById('payQRSection');if(qrSec)qrSec.style.display=m==='qr'?'block':'none';
+      const cashSec=document.getElementById('payCashSection');if(cashSec)cashSec.style.display=m==='cash'?'block':'none';
+      const bqr=document.getElementById('payBtnQR');
+      if(bqr){bqr.style.background=m==='qr'?'var(--m)':'#fff';bqr.style.color=m==='qr'?'#fff':'var(--ch)';bqr.style.borderColor=m==='qr'?'var(--m)':'rgba(95,20,49,.15)';}
+      const bcash=document.getElementById('payBtnCash');
+      if(bcash){bcash.style.background=m==='cash'?'var(--m)':'#fff';bcash.style.color=m==='cash'?'#fff':'var(--ch)';bcash.style.borderColor=m==='cash'?'var(--m)':'rgba(95,20,49,.15)';}
+      updCoBtn();
     };
 
     function refreshCoSummary(){document.getElementById('coItems').innerHTML=Object.entries(cart).map(([k,q])=>{const p=products.find(x=>x.id===cartBaseId(k));if(!p)return'';const ex=cartExtraPerUnit(k);const m=cartMeta[k];const optsStr=m&&m.picks&&m.picks.length?' ('+optLabel(m.picks)+')':'';return`<div style="display:flex;justify-content:space-between;padding:.3rem 0;font-size:.75rem;border-bottom:1px solid rgba(95,20,49,.04)"><span>${pname(p)}${optsStr} \u00d7${q}</span><span style="font-weight:600;color:var(--m)">\u0e3f${(p.price+ex)*q}</span></div>`}).join('')}
@@ -1050,7 +1047,7 @@
         localStorage.setItem('jfs_last_order',String(Date.now()));
         // Show thank-you immediately
         cart={};cartMeta={};slipData='';['coName','coClass','coRoom','coNotes'].forEach(id=>document.getElementById(id).value='');
-        document.getElementById('coSlipPrev').style.display='none';document.getElementById('coSlipIn').value='';
+        const sp=document.getElementById('coSlipPrev');if(sp)sp.style.display='none';const si=document.getElementById('coSlipIn');if(si)si.value='';
         btn.textContent=t('placeOrder');bump();renderGrid();closeCo();
         document.getElementById('tyQueue').textContent='#'+String(order.queue_num).padStart(3,'0');
         document.getElementById('tyId').textContent='Order '+order.id;
@@ -1789,4 +1786,4 @@
       if(!onTrack&&!onShop)return;
       if(useSB){try{await syncFromSupabase()}catch(e){}}
       checkOrderNotifs();
-      if(onTrack){renderMyOrders();if(lastTrack!=null){const o=getOrders().find(x=>x.queue_num===lastTrack);
+      if(onTrack){renderMyOrders();if(lastTrack!=null){const o=getOrders().find(x=>x.queue_num===lastTrack);if(o)document.getElementById('trackResult').innerHTML=trackCardHTM
