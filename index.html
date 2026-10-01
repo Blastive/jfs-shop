@@ -944,7 +944,7 @@
     };
 
     // ═══════ DUPLICATE PREVENTION ═══════
-    const COOLDOWN_MS=120000; // 2 minutes
+    const COOLDOWN_MS=5000; // 2 minutes
     function canOrder(){
       const last=parseInt(localStorage.getItem('jfs_last_order')||'0',10);
       const diff=Date.now()-last;
